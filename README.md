@@ -1,13 +1,12 @@
 # 🔗 UTRGV Link-Up: Your Ultimate Campus Productivity Hub
 
 Link up, work smarter, and own your UTRGV experience.
----
-##💡 Overview
-Stop wasting time walking across campus or searching for a spot to study. UTRGV Link-Up is the all-in-one productivity and social tool built specifically for Vaqueros.
 
+## 💡 Overview
+Stop wasting time walking across campus or searching for a spot to study. UTRGV Link-Up is the all-in-one productivity and social tool built specifically for Vaqueros.
 This application cuts through the clutter, giving you instant access to the essential campus resources you need to succeed. Built with Python and a responsive web frontend, you can instantly check live library computer availability to secure your workstation, book study breakout rooms with a tap, and seamlessly coordinate with your study groups right from your desktop or mobile device.
 ---
-##✨ Key Features
+## ✨ Key Features
 UTRGV Link-Up is designed to help you work smarter, not harder:
 
 💻 Find Open Computers: Get live status for all available library workstations across both UTRGV campuses (via messaging other students that are currently utilizing the library). Never wander aimlessly again.
@@ -19,7 +18,7 @@ UTRGV Link-Up is designed to help you work smarter, not harder:
 🗓️ Never Miss Out: Effortlessly browse, create, and share official and student-run campus events happening across both campuses.
 
 ---
-##🛠️ Built With
+## 🛠️ Built With
 The application is powered by the following technologies:
 
 Backend Language: Python
@@ -32,7 +31,7 @@ Database: [PostgreSQL / SQLite]
 
 Real-time Communication: WebSockets implementation for the instant messaging feature.
 ---
-##🤝 Contribution
+## 🤝 Contribution
 We welcome contributions from the UTRGV community! Please feel free to open an issue for bug reports or feature suggestions.
 
 Fork the repository.
@@ -45,9 +44,9 @@ Push to the Branch (git push origin feature/AmazingFeature).
 
 Open a Pull Request.
 ---
-📄 License
+## 📄 License
 Distributed under the MIT License. See the LICENSE file in the repository root for more information.
 ---
-✉️ Contact
+## ✉️ Contact
 Project Link: https://github.com/jmgtz01/utrgv-link-up
 Developer: jmgtz01
