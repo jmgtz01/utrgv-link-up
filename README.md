@@ -1,2 +1,2 @@
-# utrgv-link-up
+# UTRGV Link Up
 University Social Life App
