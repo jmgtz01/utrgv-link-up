@@ -23,11 +23,11 @@ The application is powered by the following technologies:
 
 Backend Language: Python
 
-Web Framework: [Django / Flask / FastAPI] (Specify your chosen Python framework)
+Web Framework: Django
 
 Frontend Styling: Bootstrap 5.x for a responsive, mobile-first design.
 
-Database: [PostgreSQL / SQLite]
+Database: SQLite
 
 Real-time Communication: WebSockets implementation for the instant messaging feature.
 ---
