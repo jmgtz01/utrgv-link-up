@@ -11,7 +11,7 @@ UTRGV Link-Up is designed to help you work smarter, not harder:
 
 💻 Find Open Computers: Get live status for all available library workstations across both UTRGV campuses (via messaging other students that are currently utilizing the library). Never wander aimlessly again.
 
-📚 Book Your Space: Instantly reserve study rooms and breakout spaces right from the app.
+📚 Book Your Space: Instantly reserve virtual study rooms and breakout spaces right from the app.
 
 💬 Connect & Collaborate: Use the built-in instant messaging for group chat, direct messaging, and quick study session creation with your peers.
 
