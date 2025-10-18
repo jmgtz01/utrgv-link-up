@@ -1,9 +1,7 @@
+# 🏆 Contributors: Julian Gutierrez and John Payes
 # 🔗 UTRGV Link-Up: Your Ultimate Campus Productivity Hub
---
-## 🏆 Contributors: Julian Gutierrez and John Payes
---
 Link up, work smarter, and own your UTRGV experience.
-
+--
 ## 💡 Overview
 Stop wasting time walking across campus or searching for a spot to study. UTRGV Link-Up is the all-in-one productivity and social tool built specifically for Vaqueros.
 This application cuts through the clutter, giving you instant access to the essential campus resources you need to succeed. Built with Python and a responsive web frontend, you can instantly check live library computer availability to secure your workstation, book study breakout rooms with a tap, and seamlessly coordinate with your study groups right from your desktop or mobile device.
