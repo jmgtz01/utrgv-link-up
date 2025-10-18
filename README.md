@@ -1,5 +1,7 @@
 # 🔗 UTRGV Link-Up: Your Ultimate Campus Productivity Hub
-
+--
+## 🏆 Contributors: Julian Gutierrez and John Payes
+--
 Link up, work smarter, and own your UTRGV experience.
 
 ## 💡 Overview
