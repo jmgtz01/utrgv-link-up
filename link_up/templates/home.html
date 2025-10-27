@@ -1,0 +1,131 @@
+{% extends "base.html" %} {% block content %}
+
+<h1>Home Page</h1>
+<div
+  id="carouselExampleControlsNoTouching"
+  class="carousel slide"
+  data-bs-touch="false"
+>
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img
+        src="https://media.istockphoto.com/id/111897484/photo/computer-training-classroom-education.jpg?s=612x612&w=0&k=20&c=sU_7HdyylO4GjDkkJ_az0xjS6tJT22ozDLgFPIfE-BQ="
+        class="d-block w-100"
+        alt="..."
+      />
+    </div>
+    <div class="carousel-item">
+      <img
+        src="https://media.istockphoto.com/id/1939499353/photo/creating-art-for-a-sustainable-future.jpg?s=612x612&w=0&k=20&c=8e3vgoSwb7absLp67LTEoi3HX5_iagmD7Xz5qFsr5I4="
+        class="d-block w-100"
+        alt="..."
+      />
+    </div>
+    <div class="carousel-item">
+      <img
+        src="https://media.istockphoto.com/id/624695614/photo/university-students-doing-group-study.jpg?s=612x612&w=0&k=20&c=4Renn4AMIZtZnmbkgDKmkDZaLkImg5SFtGd2X4W9hGg="
+        class="d-block w-100"
+        alt="..."
+      />
+    </div>
+  </div>
+  <button
+    class="carousel-control-prev"
+    type="button"
+    data-bs-target="#carouselExampleControlsNoTouching"
+    data-bs-slide="prev"
+  >
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button
+    class="carousel-control-next"
+    type="button"
+    data-bs-target="#carouselExampleControlsNoTouching"
+    data-bs-slide="next"
+  >
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+</div>
+<br />
+<div class="row">
+  <div class="col-3">
+    <div class="card" style="width: 18rem">
+      <img
+        src="https://media.istockphoto.com/id/2149321150/photo/young-well-dressed-businesswoman-working-at-the-office.jpg?s=612x612&w=0&k=20&c=wnaVShpC4UawcZtpzUip_Kk821Qrc0sbciRuURSKaqg="
+        class="card-img-top"
+        alt="..."
+      />
+      <div class="card-body">
+        <h5 class="card-title text-center">Available Computers</h5>
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card’s content.
+        </p>
+        <a href="{% url 'available-computers'%}" class="btn btn-primary"
+          >Take me there</a
+        >
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card" style="width: 18rem">
+      <img
+        src="https://media.istockphoto.com/id/639359406/photo/students-studying-in-college-library.jpg?s=612x612&w=0&k=20&c=8ItJkQbEDQPMRkjqxCCpCKIBThJ6dZ2HLWfwQ4Zj470="
+        class="card-img-top"
+        alt="..."
+      />
+      <div class="card-body">
+        <h5 class="card-title text-center">Study Groups</h5>
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card’s content.
+        </p>
+        <a href="{% url 'study-groups'%}" class="btn btn-primary"
+          >Take me there</a
+        >
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card" style="width: 18rem">
+      <img
+        src="https://media.istockphoto.com/id/1218975473/photo/group-of-college-student-friends-meeting-and-talking-in-busy-communal-campus-building.jpg?s=612x612&w=0&k=20&c=ggYncioFDbZjXryC923y3Jmdc3uNFAsmZML-ftZYXYI="
+        class="card-img-top"
+        alt="..."
+      />
+      <div class="card-body">
+        <h5 class="card-title text-center">Events</h5>
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card’s content.
+        </p>
+        <a href="{% url 'events'%}" class="btn btn-primary align-middle"
+          >Take me there</a
+        >
+      </div>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card" style="width: 18rem">
+      <img
+        src="https://media.istockphoto.com/id/886458330/photo/education-technology-concept.jpg?s=612x612&w=0&k=20&c=s41wFcX1sTljyY-SnPuRemYpa8KLjNhGg9ojCy0oOv8="
+        class="card-img-top"
+        alt="..."
+      />
+      <div class="card-body">
+        <h5 class="card-title text-center">Resources</h5>
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card’s content.
+        </p>
+       <a href="{% url 'resources'%}" class="btn btn-primary align-center"
+          >Take me there</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
