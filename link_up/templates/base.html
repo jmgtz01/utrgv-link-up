@@ -16,7 +16,9 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'home' %}">UTRGV Link-Up</a>
+        <!-- Use namespaced route names -->
+        <a class="navbar-brand" href="{% url 'link_up:home' %}">UTRGV Link-Up</a>
+
         <button
           class="navbar-toggler"
           type="button"
@@ -24,56 +26,57 @@
           data-bs-target="#navbarSupportedContent"
           aria-controls="navbarSupportedContent"
           aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+          aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'about'%}">About</a>
+              <a class="nav-link" href="{% url 'link_up:about' %}">About</a>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'available-computers'%}">Available Computers</a>
+              <a class="nav-link" href="{% url 'link_up:available_computers' %}">Available Computers</a>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'study-groups'%}">Study Groups</a>
+              <a class="nav-link" href="{% url 'link_up:study_groups' %}">Study Groups</a>
+              {# Or {% url 'link_up:study-groups' %} if your name uses a hyphen #}
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'instant-message'%}">Instant Message</a>
+              <a class="nav-link" href="{% url 'link_up:instant_message' %}">Instant Message</a>
+              {# Or {% url 'link_up:instant-message' %} if your name uses a hyphen #}
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'events'%}">Events</a>
+              <a class="nav-link" href="{% url 'link_up:events' %}">Events</a>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'resources'%}">Resources</a>
+              <a class="nav-link" href="{% url 'link_up:resources' %}">Resources</a>
             </li>
           </ul>
+
           <form class="d-flex" role="search">
-            <input
-              class="form-control me-2"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button class="btn btn-outline-secondary" type="submit">
-              Search
-            </button>
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
           </form>
         </div>
       </div>
     </nav>
+
     <br />
+
     <div class="container">
-        {% block content %} 
-        
-        {% endblock %}
+      {% block content %}{% endblock %}
     </div>
 
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-    ></script>
+      crossorigin="anonymous">
+    </script>
   </body>
 </html>

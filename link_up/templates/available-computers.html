@@ -1,7 +1,172 @@
 {% extends "base.html" %}
+{% load static %}
 
-{%  block content %}
+{% block content %}
+<h1>Available Computers</h1>
 
-<h1>Available Computers Page</h1>
+<div class="toolbar" style="margin:.5rem 0 1rem; display:flex; gap:.5rem;">
+  <button id="toggle-edit" class="btn btn-sm">Edit mode: Off</button>
+  <small style="opacity:.8">Click a marker to cycle status. In Edit mode, drag to reposition (saves to server).</small>
+</div>
 
+<style>
+  .map-wrap{
+    position:relative; width:100%; max-width:1400px; margin:1rem 0 2rem;
+    border:1px solid #333; border-radius:16px;
+    background:url("{% static map_img %}") center/cover no-repeat;
+    aspect-ratio: 1/1; /* change if your map isn't square */
+  }
+  .marker{
+    position:absolute; width:62px; height:62px; transform:translate(-50%,-50%);
+    display:grid; place-items:center; border-radius:10px; background:rgba(0,0,0,.35);
+    backdrop-filter:blur(2px); cursor:pointer; user-select:none;
+    left: calc(var(--x) * 1%); top: calc(var(--y) * 1%);
+    transition: box-shadow .1s ease, transform .06s ease;
+  }
+  .marker img{ width:38px; height:38px; object-fit:contain; pointer-events:none; }
+  .marker.editing{ box-shadow:0 0 0 3px rgba(255,255,255,.25) inset; cursor:grab; }
+  .label{
+    position:absolute; top:66px; left:50%; transform:translateX(-50%);
+    font-size:.85rem; white-space:nowrap; text-shadow:0 1px 2px #000;
+    pointer-events:none;
+  }
+</style>
+
+<div class="map-wrap" id="map">
+  {% for c in computers %}
+    <div class="marker"
+         data-id="{{ c.id }}" data-type="computer" data-status="{{ c.status }}"
+         style="--x: {{ c.x|floatformat:-2 }}; --y: {{ c.y|floatformat:-2 }};"
+         title="{{ c.name }} ({{ c.status|title }})">
+      <img src="{% static c.icon %}" alt="{{ c.status }}">
+      <div class="label">{{ c.name }}</div>
+    </div>
+  {% endfor %}
+
+  {% for r in rooms %}
+    <div class="marker"
+         data-id="{{ r.id }}" data-type="room" data-status="{{ r.status }}"
+         style="--x: {{ r.x|floatformat:-2 }}; --y: {{ r.y|floatformat:-2 }};"
+         title="{{ r.name }} ({{ r.status|title }})">
+      <img src="{% static r.icon %}" alt="{{ r.status }}">
+      <div class="label">{{ r.name }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+(function(){
+  // EXACT filenames (all in static/img/)
+  const ICONS = {
+    computer: {
+      order: ["available","reserved","occupied","repair"],
+      urls: {
+        available: "{% static 'img/available.png' %}",
+        reserved:  "{% static 'img/reserved.png' %}",
+        occupied:  "{% static 'img/lock.png' %}",
+        repair:    "{% static 'img/bsod.png' %}",
+      }
+    },
+    room: {
+      order: ["available","reserved","occupied","out_of_order"],
+      urls: {
+        available:    "{% static 'img/sravailable.png' %}",
+        reserved:     "{% static 'img/srreserved.png' %}",
+        occupied:     "{% static 'img/sroccupied.png' %}",
+        out_of_order: "{% static 'img/sroutoforder.png' %}",
+      }
+    }
+  };
+
+  // URL for saving positions (requires name='update_position' in urls.py)
+  const SAVE_URL = "{% url 'link_up:update_position' %}";
+
+  function getCookie(name){
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const map = document.getElementById('map');
+  const toggleBtn = document.getElementById('toggle-edit');
+  let editMode = false;
+  let dragging = null, pointerId = null;
+
+  toggleBtn.addEventListener('click', () => {
+    editMode = !editMode;
+    toggleBtn.textContent = `Edit mode: ${editMode ? 'On' : 'Off'}`;
+    map.querySelectorAll('.marker').forEach(m => m.classList.toggle('editing', editMode));
+  });
+
+  // Click cycles status (visual only for now)
+  map.addEventListener('click', (e) => {
+    if (editMode) return;
+    const m = e.target.closest('.marker');
+    if (!m) return;
+    const type = m.dataset.type;
+    const current = m.dataset.status;
+    const order = ICONS[type].order;
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    m.dataset.status = next;
+    m.title = m.title.replace(/\(.+\)$/, `(${next.replace(/_/g,' ')})`);
+    m.querySelector('img').src = ICONS[type].urls[next];
+  });
+
+  // Drag to move and save
+  map.addEventListener('pointerdown', (e) => {
+    if (!editMode) return;
+    const m = e.target.closest('.marker');
+    if (!m) return;
+    dragging = m;
+    pointerId = e.pointerId;
+    m.setPointerCapture(pointerId);
+  });
+
+  map.addEventListener('pointermove', (e) => {
+    if (!dragging || e.pointerId !== pointerId) return;
+    const rect = map.getBoundingClientRect();
+    let x = ((e.clientX - rect.left) / rect.width) * 100;
+    let y = ((e.clientY - rect.top)  / rect.height) * 100;
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+    dragging.style.setProperty('--x', x.toFixed(2));
+    dragging.style.setProperty('--y', y.toFixed(2));
+  });
+
+  map.addEventListener('pointerup', (e) => {
+    if (!dragging || e.pointerId !== pointerId) return;
+    const x = dragging.style.getPropertyValue('--x').trim();
+    const y = dragging.style.getPropertyValue('--y').trim();
+
+    // Persist new position to backend
+    fetch(SAVE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken
+      },
+      body: JSON.stringify({
+        id: dragging.dataset.id,
+        type: dragging.dataset.type,  // "computer" or "room"
+        x, y
+      })
+    }).then(r => {
+      if (!r.ok) console.error("Save failed:", r.status);
+    }).catch(err => console.error(err));
+
+    dragging.releasePointerCapture(pointerId);
+    dragging = null; pointerId = null;
+  });
+})();
+</script>
 {% endblock %}
