@@ -3,12 +3,12 @@
 
 {% block content %}
 <h1>Available Computers</h1>
-
+{% if is_admin %}
 <div class="toolbar" style="margin:.5rem 0 1rem; display:flex; gap:.5rem;">
   <button id="toggle-edit" class="btn btn-sm">Edit mode: Off</button>
   <small style="opacity:.8">Click a marker to cycle status. In Edit mode, drag to reposition (saves to server).</small>
 </div>
-
+{% endif %}
 <style>
   .map-wrap{
     position:relative; width:100%; max-width:1400px; margin:1rem 0 2rem;
@@ -30,32 +30,60 @@
     font-size:.85rem; white-space:nowrap; text-shadow:0 1px 2px #000;
     pointer-events:none;
   }
+.click-tooltip {
+  position: fixed; /* Positions relative to the window */
+  visibility: hidden; /* Hidden by default */
+  opacity: 0;
+  padding: 6px 12px;
+  background: #282828;
+  color: white;
+  border-radius: 6px;
+  border: 1px solid #555;
+  transform: translate(-50%, -120%); /* Positions it above the cursor */
+  pointer-events: none; /* Lets you click "through" it */
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  font-size: 0.9rem;
+  z-index: 1080; /* On top of other elements */
+  white-space: nowrap;
+}
+.click-tooltip.show {
+  visibility: visible;
+  opacity: 1;
+}
 </style>
 
 <div class="map-wrap" id="map">
-  {% for c in computers %}
+<div id="click-tooltip" class="click-tooltip"></div>
+{% for c in computers %}
     <div class="marker"
          data-id="{{ c.id }}" data-type="computer" data-status="{{ c.status }}"
-         style="--x: {{ c.x|floatformat:-2 }}; --y: {{ c.y|floatformat:-2 }};"
+         data-is-mine="{{ c.is_mine|yesno:'true,false' }}" style="--x: {{ c.x|floatformat:-2 }}; --y: {{ c.y|floatformat:-2 }};"
          title="{{ c.name }} ({{ c.status|title }})">
       <img src="{% static c.icon %}" alt="{{ c.status }}">
       <div class="label">{{ c.name }}</div>
     </div>
   {% endfor %}
 
-  {% for r in rooms %}
+{% for r in rooms %}
     <div class="marker"
          data-id="{{ r.id }}" data-type="room" data-status="{{ r.status }}"
-         style="--x: {{ r.x|floatformat:-2 }}; --y: {{ r.y|floatformat:-2 }};"
+         data-is-mine="{{ r.is_mine|yesno:'true,false' }}" style="--x: {{ r.x|floatformat:-2 }}; --y: {{ r.y|floatformat:-2 }};"
          title="{{ r.name }} ({{ r.status|title }})">
       <img src="{% static r.icon %}" alt="{{ r.status }}">
       <div class="label">{{ r.name }}</div>
     </div>
   {% endfor %}
 </div>
-
 <script>
 (function(){
+  const isAdmin = {{ is_admin|yesno:"true,false" }};
+  const isAuthenticated = {{ is_authenticated|yesno:"true,false" }};
+  
+  // --- NEW TOOLTIP VARIABLES ---
+  const tooltip = document.getElementById('click-tooltip');
+  let tooltipTimer = null;
+  // --- END NEW ---
+
   // EXACT filenames (all in static/img/)
   const ICONS = {
     computer: {
@@ -103,63 +131,150 @@
   let editMode = false;
   let dragging = null, pointerId = null;
 
-  toggleBtn.addEventListener('click', () => {
-    editMode = !editMode;
-    toggleBtn.textContent = `Edit mode: ${editMode ? 'On' : 'Off'}`;
-    map.querySelectorAll('.marker').forEach(m => m.classList.toggle('editing', editMode));
-  });
+  // --- NEW HELPER FUNCTION ---
+  function showTooltip(text, e) {
+    if (tooltipTimer) {
+      clearTimeout(tooltipTimer); // Clear any existing fade-out
+    }
+    tooltip.textContent = text;
+    // Position using the click event coordinates
+    tooltip.style.left = e.clientX + 'px';
+    tooltip.style.top = e.clientY + 'px';
+    
+    tooltip.classList.add('show');
+    
+    tooltipTimer = setTimeout(() => {
+      tooltip.classList.remove('show');
+    }, 2000); // Hide after 2 seconds
+  }
+  // --- END NEW ---
 
- // Click cycles status
+
+  // NEW: Wrap this in an if(isAdmin) check
+  if (isAdmin) {
+    toggleBtn.addEventListener('click', () => {
+      editMode = !editMode;
+      toggleBtn.textContent = `Edit mode: ${editMode ? 'On' : 'Off'}`;
+      map.querySelectorAll('.marker').forEach(m => m.classList.toggle('editing', editMode));
+    });
+  }
+
+  // Click cycles status OR user reserves
+  // Click cycles status OR user reserves
   map.addEventListener('click', (e) => {
-    if (editMode) return; // Don't cycle status if in edit mode
+    
+    // Check if we're in edit mode
+    if (editMode) return; 
+    
+    // Get the marker that was clicked
     const m = e.target.closest('.marker');
+
+    // If no marker was clicked (e.g., clicked empty map), do nothing.
     if (!m) return;
     
-    const type = m.dataset.type;
-    const current = m.dataset.status;
-    const order = ICONS[type].order;
-    const next = order[(order.indexOf(current) + 1) % order.length];
-    
-    // 1. Update visuals (you already have this)
-    m.dataset.status = next;
-    m.title = m.title.replace(/\(.+\)$/, `(${next.replace(/_/g,' ')})`);
-    m.querySelector('img').src = ICONS[type].urls[next];
+    // --- From here on, we KNOW a marker was clicked ---
 
-    // 2. Persist new status to backend (THIS IS THE NEW PART)
-    fetch(STATUS_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken
-      },
-      body: JSON.stringify({
-        id: m.dataset.id,
-        type: type,
-        status: next  // Send the new status
-      })
-    }).then(r => {
-      if (!r.ok) console.error("Status save failed:", r.status);
-    }).catch(err => console.error(err));
-    // (END OF NEW PART)
-  });
- 
-  // Click cycles status (visual only for now)
-  map.addEventListener('click', (e) => {
-    if (editMode) return;
-    const m = e.target.closest('.marker');
-    if (!m) return;
-    const type = m.dataset.type;
-    const current = m.dataset.status;
-    const order = ICONS[type].order;
-    const next = order[(order.indexOf(current) + 1) % order.length];
-    m.dataset.status = next;
-    m.title = m.title.replace(/\(.+\)$/, `(${next.replace(/_/g,' ')})`);
-    m.querySelector('img').src = ICONS[type].urls[next];
+    // --- ADMIN CLICK LOGIC ---
+    if (isAdmin) {
+      const type = m.dataset.type;
+      const current = m.dataset.status;
+      const order = ICONS[type].order;
+      
+      const next = order[(order.indexOf(current) + 1) % order.length];
+      
+      m.dataset.status = next;
+      m.title = m.title.replace(/\(.+\)$/, `(${next.replace(/_/g,' ')})`);
+      m.querySelector('img').src = ICONS[type].urls[next];
+
+      showTooltip(`Status set to: ${next.replace(/_/g,' ')}`, e);
+
+      fetch(STATUS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ id: m.dataset.id, type: type, status: next })
+      }).then(r => {
+        if (!r.ok) console.error("Status save failed:", r.status);
+      }).catch(err => console.error(err));
+      
+    // --- REGULAR USER CLICK LOGIC ---
+    } else if (isAuthenticated) {
+      const type = m.dataset.type;
+      const currentStatus = m.dataset.status;
+      const isMyReservation = m.dataset.isMine === 'true';
+
+      let new_status = null;
+      let new_icon_url = null;
+      let new_is_mine = m.dataset.isMine;
+      let new_title_status = null;
+      let tooltip_text = null;
+
+      // Case 1: User clicks "Available"
+      if (currentStatus === "available") {
+        new_status = "reserved";
+        new_icon_url = ICONS[type].urls["available"];
+        new_is_mine = "true";
+        new_title_status = "Reserved";
+        tooltip_text = "Spot Reserved!";
+      } 
+      // Case 2: User clicks "My Reservation"
+      else if (currentStatus === "reserved" && isMyReservation) {
+        new_status = "available";
+        new_icon_url = ICONS[type].urls["available"];
+        new_is_mine = "false";
+        new_title_status = "Available";
+        tooltip_text = "Reservation Cancelled.";
+      } 
+      // Case 3: User clicks an unusable spot
+      else {
+        if (currentStatus === "occupied") {
+          showTooltip("This spot is already in use.", e);
+        } else if (currentStatus === "repair" || currentStatus === "out_of_order") {
+          showTooltip("This spot is currently out of order.", e);
+        }
+        return; // Do nothing
+      }
+
+      // --- Update Visuals Immediately ---
+      m.dataset.status = new_status;
+      m.dataset.isMine = new_is_mine;
+      m.querySelector('img').src = new_icon_url;
+      m.title = m.title.replace(/\(.+\)$/, `(${new_title_status})`);
+      
+      showTooltip(tooltip_text, e);
+
+      // --- Send to Server ---
+      fetch(STATUS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+        body: JSON.stringify({ id: m.dataset.id, type: type, status: new_status })
+      }).then(r => {
+        if (!r.ok) {
+           console.error("Reservation failed");
+           showTooltip("Reservation failed. Please refresh.", e);
+        }
+      }).catch(err => console.error(err));
+    }
+    // --- NOT LOGGED IN LOGIC (This block is new) ---
+    else {
+      // This code ONLY runs if a marker was clicked AND user is not logged in
+      const currentStatus = m.dataset.status;
+
+      if (currentStatus === "available") {
+        // It's available, so tell them to log in
+        showTooltip("Please log in to reserve a spot.", e);
+      } else if (currentStatus === "occupied") {
+        showTooltip("This spot is already in use.", e);
+      } else if (currentStatus === "repair" || currentStatus === "out_of_order") {
+        showTooltip("This spot is currently out of order.", e);
+      }
+      // If status is "reserved" (and not theirs, since they aren't logged in)
+      // it will be treated as "occupied" by the view, so the check above handles it.
+    }
   });
 
   // Drag to move and save
   map.addEventListener('pointerdown', (e) => {
-    if (!editMode) return;
+    if (!isAdmin || !editMode) return;
     const m = e.target.closest('.marker');
     if (!m) return;
     dragging = m;
@@ -186,13 +301,10 @@
     // Persist new position to backend
     fetch(SAVE_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken
-      },
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
       body: JSON.stringify({
         id: dragging.dataset.id,
-        type: dragging.dataset.type,  // "computer" or "room"
+        type: dragging.dataset.type,
         x, y
       })
     }).then(r => {
