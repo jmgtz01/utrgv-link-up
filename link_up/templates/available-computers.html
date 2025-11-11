@@ -17,7 +17,7 @@
     aspect-ratio: 1/1; /* change if your map isn't square */
   }
   .marker{
-    position:absolute; width:62px; height:62px; transform:translate(-50%,-50%);
+    position:absolute; width:42px; height:42px; transform:translate(-50%,-50%);
     display:grid; place-items:center; border-radius:10px; background:rgba(0,0,0,.35);
     backdrop-filter:blur(2px); cursor:pointer; user-select:none;
     left: calc(var(--x) * 1%); top: calc(var(--y) * 1%);
@@ -26,7 +26,7 @@
   .marker img{ width:38px; height:38px; object-fit:contain; pointer-events:none; }
   .marker.editing{ box-shadow:0 0 0 3px rgba(255,255,255,.25) inset; cursor:grab; }
   .label{
-    position:absolute; top:66px; left:50%; transform:translateX(-50%);
+    position:absolute; top:40px; left:50%; transform:translateX(-50%);
     font-size:.85rem; white-space:nowrap; text-shadow:0 1px 2px #000;
     pointer-events:none;
   }
@@ -80,6 +80,7 @@
 
   // URL for saving positions (requires name='update_position' in urls.py)
   const SAVE_URL = "{% url 'link_up:update_position' %}";
+  const STATUS_URL = "{% url 'link_up:update_status' %}";
 
   function getCookie(name){
     let cookieValue = null;
@@ -108,6 +109,40 @@
     map.querySelectorAll('.marker').forEach(m => m.classList.toggle('editing', editMode));
   });
 
+ // Click cycles status
+  map.addEventListener('click', (e) => {
+    if (editMode) return; // Don't cycle status if in edit mode
+    const m = e.target.closest('.marker');
+    if (!m) return;
+    
+    const type = m.dataset.type;
+    const current = m.dataset.status;
+    const order = ICONS[type].order;
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    
+    // 1. Update visuals (you already have this)
+    m.dataset.status = next;
+    m.title = m.title.replace(/\(.+\)$/, `(${next.replace(/_/g,' ')})`);
+    m.querySelector('img').src = ICONS[type].urls[next];
+
+    // 2. Persist new status to backend (THIS IS THE NEW PART)
+    fetch(STATUS_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken
+      },
+      body: JSON.stringify({
+        id: m.dataset.id,
+        type: type,
+        status: next  // Send the new status
+      })
+    }).then(r => {
+      if (!r.ok) console.error("Status save failed:", r.status);
+    }).catch(err => console.error(err));
+    // (END OF NEW PART)
+  });
+ 
   // Click cycles status (visual only for now)
   map.addEventListener('click', (e) => {
     if (editMode) return;

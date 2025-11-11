@@ -11,6 +11,6 @@ urlpatterns = [
     path("instant-message/", views.instant_message, name="instant_message"),
     path("events/", views.events, name="events"),
     path("resources/", views.resources, name="resources"),
-
+    path("api/status/", views.update_status, name="update_status"),
     path("api/position/", views.update_position, name="update_position"),
 ]

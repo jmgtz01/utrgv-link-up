@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.admin.views.decorators import staff_member_required
 import json
 from .models import Computer, StudyRoom
+from .models import COMPUTER_STATUSES, ROOM_STATUSES
 
 @staff_member_required          # only allow staff to move markers
 @require_POST
@@ -25,6 +26,39 @@ def update_position(request):
 
     obj.x, obj.y = x, y
     obj.save(update_fields=["x", "y"])
+    return JsonResponse({"ok": True})
+
+@require_POST
+def update_status(request):
+    try:
+        data = json.loads(request.body.decode())
+        item_type = data["type"]    # "computer" or "room"
+        pk = int(data["id"])
+        status = data["status"]
+    except Exception:
+        return HttpResponseBadRequest("Invalid payload")
+
+    # Validate the status
+    if item_type == "computer":
+        Model = Computer
+        # Get valid status keys (e.g., "available", "reserved")
+        valid_statuses = [s[0] for s in COMPUTER_STATUSES]
+    elif item_type == "room":
+        Model = StudyRoom
+        valid_statuses = [s[0] for s in ROOM_STATUSES]
+    else:
+        return HttpResponseBadRequest("Invalid type")
+
+    if status not in valid_statuses:
+        return HttpResponseBadRequest("Invalid status")
+
+    # Find and update the object
+    obj = Model.objects.filter(pk=pk).first()
+    if not obj:
+        return HttpResponseBadRequest("Not found")
+
+    obj.status = status
+    obj.save(update_fields=["status"])
     return JsonResponse({"ok": True})
 
 def home(request):
