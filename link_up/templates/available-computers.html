@@ -14,7 +14,7 @@
     position:relative; width:100%; max-width:1400px; margin:1rem 0 2rem;
     border:1px solid #333; border-radius:16px;
     background:url("{% static map_img %}") center/cover no-repeat;
-    aspect-ratio: 1/1; /* change if your map isn't square */
+    aspect-ratio: 1/1;
   }
   .marker{
     position:absolute; width:42px; height:42px; transform:translate(-50%,-50%);
@@ -82,9 +82,7 @@
   // --- NEW TOOLTIP VARIABLES ---
   const tooltip = document.getElementById('click-tooltip');
   let tooltipTimer = null;
-  // --- END NEW ---
 
-  // EXACT filenames (all in static/img/)
   const ICONS = {
     computer: {
       order: ["available","reserved","occupied","repair"],
