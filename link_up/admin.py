@@ -1,3 +1,6 @@
+from .models import Event
+from .models import Student
+from .models import Venue
 from django.contrib import admin
 from .models import Computer, StudyRoom
 
@@ -14,3 +17,8 @@ class StudyRoomAdmin(admin.ModelAdmin):
     list_editable = ("status", "x", "y")
     search_fields = ("name",)
     list_filter = ("status",)
+
+
+admin.site.register(Venue)
+admin.site.register(Student)
+admin.site.register(Event)

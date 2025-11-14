@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from .models import Computer, StudyRoom
 from django.forms.models import model_to_dict
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -8,6 +10,14 @@ import json
 from .models import Computer, StudyRoom
 from .models import COMPUTER_STATUSES, ROOM_STATUSES
 from django.contrib.auth.decorators import login_required
+import calendar
+from calendar import HTMLCalendar
+from datetime import datetime
+from .models import Event, Venue
+from .forms import VenueForm
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
 
 @login_required
 @require_POST
@@ -21,13 +31,15 @@ def update_position(request):
     except Exception:
         return HttpResponseBadRequest("Invalid payload")
 
-    obj = (Computer if item_type == "computer" else StudyRoom).objects.filter(pk=pk).first()
+    obj = (Computer if item_type ==
+           "computer" else StudyRoom).objects.filter(pk=pk).first()
     if not obj:
         return HttpResponseBadRequest("Not found")
 
     obj.x, obj.y = x, y
     obj.save(update_fields=["x", "y"])
     return JsonResponse({"ok": True})
+
 
 @login_required
 @require_POST
@@ -36,7 +48,7 @@ def update_status(request):
         data = json.loads(request.body.decode())
         item_type = data["type"]
         pk = int(data["id"])
-        new_status = data["status"] # This is the *desired* new status
+        new_status = data["status"]  # This is the *desired* new status
     except Exception:
         return HttpResponseBadRequest("Invalid payload")
 
@@ -50,9 +62,9 @@ def update_status(request):
         # Admins can do anything
         obj.status = new_status
         if new_status == "reserved":
-            obj.reserved_by = request.user # Admin reserves for themself
+            obj.reserved_by = request.user  # Admin reserves for themself
         else:
-            obj.reserved_by = None # Any other status clears reservation
+            obj.reserved_by = None  # Any other status clears reservation
         obj.save()
         return JsonResponse({"ok": True})
 
@@ -70,15 +82,18 @@ def update_status(request):
         obj.reserved_by = None
         obj.save(update_fields=["status", "reserved_by"])
         return JsonResponse({"ok": True})
-        
+
     # Case 3: Any other action is forbidden for a regular user
     return HttpResponseBadRequest("Action not allowed")
+
+
 def home(request):
     return render(request, 'home.html', {})
 
 
 def about(request):
     return render(request, 'about.html', {})
+
 
 def available_computers(request):
     icon_map = {
@@ -100,24 +115,25 @@ def available_computers(request):
     computers = []
     for c in Computer.objects.order_by("name"):
         d = model_to_dict(c, fields=["id", "name", "x", "y", "status"])
-        is_mine = (c.reserved_by and c.reserved_by_id == request.user.id) # Use .id for efficiency
-        
+        is_mine = (c.reserved_by and c.reserved_by_id ==
+                   request.user.id)  # Use .id for efficiency
+
         # --- NEW LOGIC ---
         if c.status == "reserved":
             if is_mine:
                 # It's my reservation, show green check
                 d["icon"] = icon_map["computer"]["available"]
-                d["status"] = "reserved" # JS needs to know it's "reserved"
+                d["status"] = "reserved"  # JS needs to know it's "reserved"
             else:
                 # Someone else's reservation, show lock
                 d["icon"] = icon_map["computer"]["occupied"]
-                d["status"] = "occupied" # Treat it as occupied for the user
+                d["status"] = "occupied"  # Treat it as occupied for the user
         else:
             # It's available, repair, or occupied (by non-reservation)
             d["icon"] = icon_map["computer"][c.status]
         # --- END NEW LOGIC ---
-            
-        d["is_mine"] = is_mine # Send this to JavaScript
+
+        d["is_mine"] = is_mine  # Send this to JavaScript
         computers.append(d)
 
     rooms = []
@@ -136,7 +152,7 @@ def available_computers(request):
         else:
             d["icon"] = icon_map["room"][r.status]
         # --- END NEW LOGIC ---
-            
+
         d["is_mine"] = is_mine
         rooms.append(d)
 
@@ -145,8 +161,9 @@ def available_computers(request):
         "rooms": rooms,
         "map_img": "img/secondfloor.png",
         "is_admin": request.user.is_staff,
-        "is_authenticated": request.user.is_authenticated # <-- THIS LINE IS NEW
+        "is_authenticated": request.user.is_authenticated  # <-- THIS LINE IS NEW
     })
+
 
 def study_groups(request):
     return render(request, 'study-groups.html', {})
@@ -156,9 +173,74 @@ def instant_message(request):
     return render(request, 'instant-message.html', {})
 
 
-def events(request):
-    return render(request, 'events.html', {})
+def events(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
+    event_list = Event.objects.all()
+    name = "John"
+    month = month.capitalize()
+    # Covert mont from name to number
+    month_number = list(calendar.month_name).index(month)
+    month_number = int(month_number)
+
+    # Create a calendar
+    cal = HTMLCalendar().formatmonth(year, month_number)
+
+    # Get current year
+    now = datetime.now()
+    current_year = now.year
+
+    # Get current time
+    time = now.strftime('%I:%M %p')
+    return render(request, 'events.html', {
+        "name": name,
+        "year": year,
+        "month": month,
+        "month_number": month_number,
+        "cal": cal,
+        "current_year": current_year,
+        "time": time,
+        "event_list": event_list,
+    })
 
 
 def resources(request):
     return render(request, 'resources.html', {})
+
+
+def add_venue(request):
+    submitted = False
+    if request.method == "POST":
+        form = VenueForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('link_up:add-venue') + '?submitted=True')
+    else:
+        form = VenueForm
+        if 'submitted' in request.GET:
+            submitted = True
+    return render(request, 'add-venue.html', {
+        'form': form,
+        'submitted': submitted,
+    })
+
+def list_venues(request):
+    venue_list = Venue.objects.all()
+    return render(request, 'venue.html', {
+        'venue_list': venue_list,
+    })
+
+def show_venue(request, venue_id):
+    venue = Venue.objects.get(pk=venue_id)
+    return render(request, 'show_venue.html', {
+        'venue': venue,
+    })
+
+def update_venue(request, venue_id):
+    venue = Venue.objects.get(pk=venue_id)
+    form = VenueForm(request.POST or None, instance=venue)
+    if form.is_valid():
+        form.save()
+        return redirect('link_up:list-venues')
+    return render(request, 'update_venue.html', {
+        'venue': venue,
+        'form': form,
+    })

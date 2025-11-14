@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block content %}
+    <div>
+        <h1>{{ venue }}</h1>
+        <br>
+        {{ venue.address }}<br>
+        {{ venue.zip_code }}<br>
+        {{ venue.phone }}<br>
+        <a href="{{ venue.web }}">{{ venue.web }}</a><br>
+        {{ venue.email_address }}<br>        
+    </div>
+{% endblock content %}

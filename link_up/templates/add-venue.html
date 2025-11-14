@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block content %}
+    <div>
+        <h1>Add Venue</h1>
+        <br>
+        <hr>
+        {% if submitted %}
+            <div>
+                <h2>Your Venue Was Submitted Succefully!!!</h2>
+            </div>
+        {% else %}
+            <form action="" method="POST">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.name != 'email_address' %}
+                        <p>
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                {% for error in field.errors %}<span style="color: red; font-weight: bold;">{{ error }}</span>{% endfor %}
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                {% endfor %}
+                <p>
+                    {{ form.email_address.label_tag }}
+                    {% if form.email_address.errors %}
+                        {% for error in form.email_address.errors %}
+                            <div style="color: red; font-weight: bold;">* {{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    {{ form.email_address }}
+                </p>
+                <input type="submit" value="Submit" class="btn btn-secondary">
+            </form>
+        {% endif %}
+    </div>
+{% endblock content %}
