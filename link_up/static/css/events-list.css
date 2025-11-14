@@ -1,0 +1,10 @@
+.card-img-fixed {
+  /* Set a fixed height (adjust this value as needed) */
+  height: 200px;
+
+  /* Ensure the image fills the 200px space, cropping the edges if necessary */
+  object-fit: cover;
+
+  /* Ensure the width is 100% of the card */
+  width: 100%;
+}
