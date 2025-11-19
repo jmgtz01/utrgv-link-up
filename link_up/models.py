@@ -50,18 +50,39 @@ class Venue(models.Model):
     web = models.URLField('Website Address', blank=True)
     email_address = models.EmailField('Email Address')
 
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
+
     def __str__(self):
         return self.name
 
 
 class Student(models.Model):
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
-    student_id = models.CharField(max_length=8)
-    email = models.EmailField('Student Email Address')
+    # first_name = models.CharField(max_length=30)
+    # last_name = models.CharField(max_length=30)
+    # student_id = models.CharField(max_length=8)
+    # email = models.EmailField('Student Email Address')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
+    student_id = models.CharField('Student ID', max_length=8)
+
+    # def __str__(self):
+    #     return self.first_name + ' ' + self.last_name
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return self.user.first_name + ' ' + self.user.last_name
+    
+
+class Manager(models.Model):
+    # Links the Manager profile to the main user account
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
+
+    # Add manager-specific fields here, if any
+    department = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.user.get_full_name()
 
 
 class Event(models.Model):
@@ -69,7 +90,9 @@ class Event(models.Model):
     event_date = models.DateTimeField('Event Date')
     venue = models.ForeignKey(
         Venue, blank=True, null=True, on_delete=models.CASCADE)
-    manager = models.CharField(max_length=60)
+    # manager = models.CharField(max_length=60)
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_events')
+    email_address = models.EmailField('Email Address')
     description = models.TextField(blank=True)
     attendees = models.ManyToManyField(Student, blank=True)
     image_name = models.CharField(max_length=60)

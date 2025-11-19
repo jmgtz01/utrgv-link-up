@@ -1,3 +1,6 @@
 body {
-    background-color: #C4C4C4;
+  background-color: #c4c4c4;
+}
+.flatpickr-calendar {
+  z-index: 9999 !important;
 }

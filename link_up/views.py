@@ -1,5 +1,4 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from .models import Computer, StudyRoom
 from django.forms.models import model_to_dict
@@ -14,7 +13,7 @@ import calendar
 from calendar import HTMLCalendar
 from datetime import datetime
 from .models import Event, Venue
-from .forms import VenueForm
+from .forms import VenueForm, EventForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
@@ -174,7 +173,22 @@ def instant_message(request):
 
 
 def events(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
-    event_list = Event.objects.all()
+    event_list = Event.objects.none()
+    if request.user.is_authenticated:
+        # Check if the user is linked to a Manager profile
+        if hasattr(request.user, 'manager'):
+            # Manager: Filter for events where the current user is the manager
+            # (Assumes the FK field in Event is named 'manager')
+            event_list = Event.objects.filter(
+                manager=request.user).order_by('event_date')
+
+        # Check if the user is linked to a Student profile
+        elif hasattr(request.user, 'student'):
+            # Student: Filter for events where the current user's Student profile
+            # is in the 'attendees' ManyToMany field
+            current_student_profile = request.user.student
+            event_list = Event.objects.filter(
+                attendees=current_student_profile).order_by('event_date')
     name = "John"
     month = month.capitalize()
     # Covert mont from name to number
@@ -211,7 +225,10 @@ def add_venue(request):
     if request.method == "POST":
         form = VenueForm(request.POST)
         if form.is_valid():
-            form.save()
+            venue = form.save(commit=False)
+            venue.owner = request.user
+            venue.save()
+            submitted = True
             return HttpResponseRedirect(reverse('link_up:add-venue') + '?submitted=True')
     else:
         form = VenueForm
@@ -223,7 +240,12 @@ def add_venue(request):
     })
 
 def list_venues(request):
-    venue_list = Venue.objects.all()
+    if request.user.is_authenticated:
+        # Filter: Only show venues owned by the current user
+        venue_list = Venue.objects.filter(owner=request.user).order_by('name')
+    else:
+        # If the user is not logged in, show an empty list or redirect
+        venue_list = []
     return render(request, 'venue.html', {
         'venue_list': venue_list,
     })
@@ -244,3 +266,120 @@ def update_venue(request, venue_id):
         'venue': venue,
         'form': form,
     })
+
+
+def add_events(request):
+    submitted = False
+    if request.method == "POST":
+        form = EventForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('link_up:add-events') + '?submitted=True')
+    else:
+        form = EventForm()
+        if 'submitted' in request.GET:
+            submitted = True
+    return render(request, 'add-events.html', {
+        'form': form,
+        'submitted': submitted,
+    })
+
+
+def update_event(request, event_id):
+    event = Event.objects.get(pk=event_id)
+    form = EventForm(request.POST or None, instance=event)
+    if form.is_valid():
+        form.save()
+        return redirect('link_up:events')
+    return render(request, 'update_event.html', {
+        'event': event,
+        'form': form,
+    })
+
+def delete_event(request, event_id):
+    event = Event.objects.get(pk=event_id)
+    event.delete()
+    return redirect('link_up:events')
+
+
+def delete_venue(request, venue_id):
+    venue = Venue.objects.get(pk=venue_id)
+    venue.delete()
+    return redirect('link_up:list-venues')
+
+
+@login_required
+def not_attend(request, event_id):
+    # 1. Get the event or return a 404 error if it doesn't exist
+    event = get_object_or_404(Event, pk=event_id)
+
+    # 2. Check if the logged-in user has a student profile
+    if hasattr(request.user, 'student'):
+        current_student = request.user.student
+
+        # 3. Remove the student profile from the event's attendees list
+        # The remove() method on the M2M manager handles the deletion.
+        event.attendees.remove(current_student)
+
+    # 4. Redirect the user back to the events list page
+    return redirect('link_up:events')
+    # Ensure 'link_up:events' matches your actual events list URL name
+
+
+@login_required
+def my_events(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
+    # 1. Filter events the student is attending
+    current_student_profile = request.user.student
+    event_list = Event.objects.filter(
+        attendees=current_student_profile).order_by('event_date')
+
+    # ... (Reuse the existing calendar generation code and context) ...
+    # You need to ensure all context variables (name, year, month, etc.) are defined here,
+    # or you can consolidate the calendar logic into a helper function.
+
+    # Example minimal context (you should include all variables your template needs):
+    context = {
+        'event_list': event_list,
+        'name': request.user.first_name or request.user.username,
+        # ... include calendar variables like 'year', 'month', 'cal', etc.
+        'view_mode': 'my_events'  # Pass a flag to the template for button styling
+    }
+
+    return render(request, 'events.html', context)
+
+
+@login_required
+def all_events_student(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
+    # 1. Retrieve all events
+    event_list = Event.objects.all().order_by('event_date')
+
+    # ... (Reuse the existing calendar generation code and context) ...
+
+    # Example minimal context:
+    context = {
+        'event_list': event_list,
+        'name': request.user.first_name or request.user.username,
+        # ... include calendar variables like 'year', 'month', 'cal', etc.
+        'view_mode': 'all_events'  # Pass a flag to the template for button styling
+    }
+
+    return render(request, 'events.html', context)
+
+
+@login_required
+def attend_event(request, event_id):
+    # Get the event or return a 404
+    event = get_object_or_404(Event, pk=event_id)
+
+    # Check if the user is a student
+    if hasattr(request.user, 'student'):
+        current_student = request.user.student
+
+        # Add the student profile to the event's attendees list
+        # The add() method on the M2M manager handles the inclusion.
+        event.attendees.add(current_student)
+
+    # Redirect the user back to the events list page (My Events or All Events)
+    # Use the 'my-events' or 'all-events-student' name depending on where the user should go next.
+    # Redirecting to My Events is usually logical
+    return redirect('link_up:my-events')
