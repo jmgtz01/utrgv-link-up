@@ -4,12 +4,29 @@
 {% endblock extra_css %}
 {% block content %}
     <div>
-        <h1>{{ venue }}</h1>
-        <br>
-        {{ venue.address }}<br>
-        {{ venue.zip_code }}<br>
-        {{ venue.phone }}<br>
-        <a href="{{ venue.web }}">{{ venue.web }}</a><br>
-        {{ venue.email_address }}<br>        
+        {% if user.is_authenticated %}
+            {% if user.manager %}
+                <h1>{{ venue }}</h1>
+                <br>
+                {{ venue.address }}
+                <br>
+                {{ venue.zip_code }}
+                <br>
+                {{ venue.phone }}
+                <br>
+                <a href="{{ venue.web }}">{{ venue.web }}</a>
+                <br>
+                {{ venue.email_address }}
+                <br>
+                <br>
+                <a type="button"
+                        class="btn btn-secondary"
+                        href="{% url 'link_up:events' %}">Events Page</a>
+            {% endif %}
+        {% else %}
+            <h1>Sorry! You Must Be Logged In To View This Page...</h1>
+            <br>
+            <a type="button" class="btn btn-secondary" href="{% url 'login' %}">Login Here</a>
+        {% endif %}
     </div>
 {% endblock content %}

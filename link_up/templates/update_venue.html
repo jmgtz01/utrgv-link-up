@@ -1,11 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Update Venue</h1>
+  {% if user.is_authenticated %}
+    {% if user.manager %}
+    <h1>Update Venue</h1>
     <br>
     <form action="" method=POST>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <br>
-        <input type="submit" value="Update" class="butn btn-secondary">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <br>
+      <input type="submit" value="Update" class="butn btn-secondary">
     </form>
+    {% endif %}
+  {% else %}
+    <h1>Sorry! You Must Be Logged In To View This Page...</h1>
+    <br>
+    <a type="button" class="btn btn-secondary" href="{% url 'login' %}">Login Here</a>
+  {% endif %}
 {% endblock content %}

@@ -2,7 +2,7 @@ from .models import Event
 from .models import Student
 from .models import Venue
 from django.contrib import admin
-from .models import Computer, StudyRoom
+from .models import Computer, StudyRoom, Manager
 
 @admin.register(Computer)
 class ComputerAdmin(admin.ModelAdmin):
@@ -22,3 +22,4 @@ class StudyRoomAdmin(admin.ModelAdmin):
 admin.site.register(Venue)
 admin.site.register(Student)
 admin.site.register(Event)
+admin.site.register(Manager)

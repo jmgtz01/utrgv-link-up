@@ -1,10 +1,12 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Venue
+from .models import Venue, Event
 from django.utils.html import format_html
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.contrib.auth.models import User
+
 
 # Define the custom validator for the phone format
 phone_regex = RegexValidator(
@@ -38,7 +40,7 @@ class VenueForm(ModelForm):
             'email_address': format_html("Email address: Enter email address (<span style='color:red;'>Required</span>)"),
         }
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UTRGV Events'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UTRGV Venue Name'}),
             'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345 UTRGV Drive'}),
             'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Brownsville'}),
             'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'TX'}),
@@ -71,3 +73,86 @@ class VenueForm(ModelForm):
         widget=forms.EmailInput(
             attrs={'class': 'form-control', 'placeholder': 'john.doe01@utrgv.edu'}),
     )
+
+class EventForm(ModelForm):
+    # This line defines a Field instance directly on the form
+    event_date = forms.DateTimeField(
+        label=format_html(
+            "Date: Enter the Date (<span style='color:red;'>Required</span>)"),
+        widget=forms.DateInput(attrs={
+            'class':'form-control',
+            'type':'datetime-local',
+        },
+            format='%Y-%m-%dT%H:%M'
+        ),
+    )
+
+    venue = forms.ModelChoiceField(
+        # This queryset fetches all available venues for the dropdown list
+        queryset=Venue.objects.all(),
+        label=format_html(
+            "Venue: Pick your Venue (<span style='color:red;'>Required</span>)"),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="--- Select a Venue ---"
+    )
+
+    # def clean_manager(self):
+    #     username = self.cleaned_data.get('manager')
+    #     try:
+    #         # Look up the User object based on the provided username
+    #         manager_user = User.objects.get(username=username)
+    #         # Return the User object required by the ForeignKey field
+    #         return manager_user
+    #     except User.DoesNotExist:
+    #         raise forms.ValidationError(
+    #             "User with that username does not exist.")
+
+    manager = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        label=format_html(
+            "Manager: Pick the Manager (<span style='color:red;'>Required</span>)"),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+    def clean_image_name(self):
+        """
+        Prepends 'img/events-list/' to the image_name value if it exists and
+        doesn't already start with the desired prefix.
+        """
+        image_name = self.cleaned_data.get('image_name')
+        prefix = 'img/events-list/'
+
+        if image_name:
+            # Strip potential leading/trailing whitespace
+            image_name = image_name.strip()
+
+            # Check if the prefix is already there (case-insensitive for robustness)
+            if not image_name.lower().startswith(prefix.lower()):
+                return prefix + image_name
+
+        return image_name
+    
+    class Meta:
+        model = Event
+        fields = ('name', 'event_date', 'venue', 'manager',
+                  'email_address', 'description', 'image_name')
+        labels = {
+            'name': format_html("Name: Enter Your Event Here (<span style='color:red;'>Required</span>)"),
+            # 'event_date': format_html("Date: Enter the Date (<span style='color:red;'>Required</span>)"),
+            # 'venue': format_html("Venue: Pick your Venue (<span style='color:red;'>Required</span>)"),
+            'manager': format_html("Manager: Enter the Manager's Username (<span style='color:red;'>Required</span>)"),
+            'email_address': format_html("Email Address: Enter Event Contact Email (<span style='color:red;'>Required</span>)"),
+            'description': format_html("Description code: Type a description of your event... (<span style='color:red;'>Required</span>)"),
+            # 'attendees': format_html("Pick Attendees: (<span style='color:red;'>Required</span>)"),
+            'image_name': format_html("Image Name: Enter the file name of your image"),
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UTRGV Event Name'}),
+            # 'event_date': CustomSplitDateTimeWidget(date_format='%Y-%m-%d'),
+            # 'venue': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UTRGV CSCI'}),
+            'manager': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'vaquero01'}),
+            'email_address': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contact@utrgv.edu'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Please joing us our anual UTRGV CSCI fair for fun activities, and food.'}),
+            # 'attendees': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Adrian Holovaty'}),
+            'image_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'csci_fair_2025.jpg'}),
+        }

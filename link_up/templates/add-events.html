@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block content %}
+    <div>
+        {% if user.is_authenticated %}
+             {% if user.manager %}
+                <h1>Add Event</h1>
+                {% if submitted %}
+                    <p>Your Event was Submitted Successfully!!</p>
+                {% else %}
+                    <form action="{% url 'link_up:add-events' %}" method="POST">
+                        {% csrf_token %}
+                        {# Display non-field errors at the top #}
+                        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                        {{ form.as_p }}
+                        <input type="submit" value="Submit" class="btn btn-secondary">
+                        <a type="button"
+                        class="btn btn-secondary"
+                        href="{% url 'link_up:events' %}">Events Page</a>
+                    </form>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock content %}
