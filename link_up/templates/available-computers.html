@@ -104,10 +104,9 @@
 </div>
 
 <script>
-// Delay execution until after Bootstrap JS is available
 window.addEventListener('load', () => {
 (function(){
-  // --- Page-level setup ---
+  // Page-level setup  
   const isAdmin = {{ is_admin|yesno:"true,false" }};
   const isAuthenticated = {{ is_authenticated|yesno:"true,false" }};
 
@@ -148,7 +147,6 @@ window.addEventListener('load', () => {
   const modalFooter = document.getElementById('reservation-modal-footer');
   let modalInstance = null;
 
-  // Grab CSRF from cookies for all POSTs
   function getCookie(name){
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -165,7 +163,6 @@ window.addEventListener('load', () => {
   }
   const csrftoken = getCookie('csrftoken');
 
-  // Main map and control handles
   const map = document.getElementById('map');
   const toggleBtn = document.getElementById('toggle-edit');
   const cancelBtn = document.getElementById('cancel-reservation');
@@ -185,7 +182,6 @@ window.addEventListener('load', () => {
     }, 2000);
   }
 
-  // Format ISO times into human-readable ranges
   function formatRange(startIso, endIso){
     const start = new Date(startIso);
     const end = new Date(endIso);
@@ -193,8 +189,7 @@ window.addEventListener('load', () => {
     return `${start.toLocaleTimeString([], opts)} - ${end.toLocaleTimeString([], opts)}`;
   }
 
-  // --- Modal: login inline ---
-  // Lets guests authenticate without leaving this page
+  // Login without moving location
   function showLoginModal(targetLabel){
     modalTitle.textContent = `Log in to reserve ${targetLabel}`;
     modalBody.innerHTML = `
@@ -247,8 +242,7 @@ window.addEventListener('load', () => {
     };
   }
 
-  // --- Modal: pick slot, optionally cancel current ---
-  // Shows available slots and lets user cancel an active booking to proceed
+  // Pick slot. Can also cancel current reservation 
   async function openReservationModal(marker){
     const type = marker.dataset.type;
     const name = marker.title || marker.querySelector('.label')?.textContent || 'this spot';
@@ -311,7 +305,6 @@ window.addEventListener('load', () => {
       return;
     }
 
-    // Filter out only open slots for today
     const availableSlots = data.slots.filter(s => s.available);
     if (!availableSlots.length){
       modalBody.innerHTML = `<div class="alert alert-secondary">No slots remaining today.</div>`;
@@ -326,9 +319,7 @@ window.addEventListener('load', () => {
               </div>`;
     }).join('');
 
-    const nowAction = data.current_available ? `<button type="button" class="btn btn-success btn-sm mb-3" id="reserve-now-btn">Reserve now (until end of hour)</button>` : '';
     modalBody.innerHTML = `
-      ${nowAction}
       <p class="mb-2">Select a 1-hour slot (today):</p>
       ${list}
       <div class="text-danger small d-none" id="reserve-error"></div>
@@ -337,36 +328,6 @@ window.addEventListener('load', () => {
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       <button type="button" class="btn btn-primary" id="reserve-submit">Reserve</button>
     `;
-
-    const nowBtn = modalBody.querySelector('#reserve-now-btn');
-    if (nowBtn){
-      // Book remainder of current hour instantly
-      nowBtn.onclick = async () => {
-        nowBtn.disabled = true;
-        try{
-          const resp = await fetch(RESERVE_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": csrftoken
-            },
-            body: JSON.stringify({ type, id: marker.dataset.id, reserve_now: true })
-          });
-          if(resp.ok){
-            location.reload();
-          }else{
-            nowBtn.disabled = false;
-            const d = await resp.text();
-            modalBody.querySelector('#reserve-error').classList.remove('d-none');
-            modalBody.querySelector('#reserve-error').textContent = d || "Could not reserve now.";
-          }
-        }catch(ex){
-          nowBtn.disabled = false;
-          modalBody.querySelector('#reserve-error').classList.remove('d-none');
-          modalBody.querySelector('#reserve-error').textContent = "Network error.";
-        }
-      };
-    }
 
     modalFooter.querySelector('#reserve-submit').onclick = async () => {
       const chosen = modalBody.querySelector('input[name="slot-choice"]:checked');
@@ -396,8 +357,7 @@ window.addEventListener('load', () => {
     };
   }
 
-  // --- Admin edit toggles ---
-  // Staff can flip edit mode to drag markers and cycle status
+  // Admin edit toggles  
   if (isAdmin && toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       editMode = !editMode;
@@ -406,8 +366,7 @@ window.addEventListener('load', () => {
     });
   }
 
-  // --- User click on marker (admin cycles; users open/reserve; guests login) ---
-  // Routes click behavior to admin cycling or user reservation/login flow
+  // User click on marker (admin cycles to add out of order/available; users open/reserve; guests login)  
   map.addEventListener('click', (e) => {
     if (editMode) return;
     const m = e.target.closest('.marker');
@@ -450,8 +409,7 @@ window.addEventListener('load', () => {
     openReservationModal(m);
   });
 
-  // --- Drag to move (admin edit mode) ---
-  // Handles pointer drag to move markers and persist coordinates
+  // Drag to move (admin edit mode)  
   map.addEventListener('pointerdown', (e) => {
     if (!isAdmin || !editMode) return;
     const m = e.target.closest('.marker');
@@ -493,10 +451,9 @@ window.addEventListener('load', () => {
     dragging = null; pointerId = null;
   });
 
-  // --- Cancel active reservation banner ---
-  // Banner button to cancel current reservation
+  // Cancel active reservation banner  
   if (cancelBtn){
-    // Pretty display of end time
+    // Display of end time
     const endSpan = document.getElementById('active-res-end');
     if (endSpan && endSpan.dataset.end){
       const endTxt = new Date(endSpan.dataset.end);
@@ -509,7 +466,7 @@ window.addEventListener('load', () => {
         const resp = await fetch(CANCEL_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
-          body: JSON.stringify({})  // no payload needed
+          body: JSON.stringify({})
         });
         if (resp.ok){
           location.reload();
