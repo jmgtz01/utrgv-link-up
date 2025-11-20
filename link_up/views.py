@@ -291,8 +291,8 @@ def available_slots(request):
     now = timezone.localtime()
     tz = timezone.get_current_timezone()
     today = now.date()
-    day_start = timezone.make_aware(datetime.combine(today, time(8, 0)), tz)
-    day_end = timezone.make_aware(datetime.combine(today, time(20, 0)), tz)
+    day_start = timezone.make_aware(datetime.combine(today, time(0, 0)), tz)
+    day_end = timezone.make_aware(datetime.combine(today, time(23, 59)), tz)
 
     start_at = max(day_start, _round_up_to_half_hour(now))
     reservations = list(Reservation.objects.filter(
@@ -373,8 +373,8 @@ def create_reservation(request):
         return HttpResponseBadRequest("Start must be on the hour or half-hour")
 
     tz = timezone.get_current_timezone()
-    earliest = timezone.make_aware(datetime.combine(today, time(8, 0)), tz)
-    latest_end = timezone.make_aware(datetime.combine(today, time(20, 0)), tz)
+    earliest = timezone.make_aware(datetime.combine(today, time(0, 0)), tz)
+    latest_end = timezone.make_aware(datetime.combine(today, time(23, 59)), tz)
     if start_dt < earliest or end_dt > latest_end:
         return HttpResponseBadRequest("Outside reservable hours (8am-8pm)")
 
@@ -416,7 +416,7 @@ def create_reservation(request):
 
 
 def study_groups(request):
-    return render(request, 'study-groups.html', {})
+    return render(request, 'media-equipment.html', {})
 
 
 def instant_message(request):

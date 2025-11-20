@@ -20,3 +20,8 @@
 ## DB and migrations
 - Applied main-branch migrations; added `0011_reservation` for the new model.
 - Fixed bad event.manager data blocking migrations; set to a valid user.
+
+## Media Equipment (new page)
+- Repurposed study-groups route to render a static media equipment checkout page.
+- Added new template `media-equipment.html` with notice bullets, table of items (dummy data), and a demo "Hold" button column. Hold clicks flip to "Request Sent" for 60 minutes (front-end only, persists via localStorage).
+- Navbar label now reads "Media Equipment" and points to the same route.
