@@ -1,19 +1,36 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from .forms import RegisterUserForm
+import json
 
 def login_user(request):
+    is_json = request.content_type == "application/json" or request.headers.get(
+        "X-Requested-With") == "XMLHttpRequest"
+
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
+        if is_json:
+            try:
+                data = json.loads(request.body.decode())
+                username = data.get("username", "")
+                password = data.get("password", "")
+            except Exception:
+                return JsonResponse({"ok": False, "error": "Bad payload"}, status=400)
+        else:
+            username = request.POST.get("username", "")
+            password = request.POST.get("password", "")
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # Redirect to a success page.
+            if is_json:
+                return JsonResponse({"ok": True})
             return redirect('link_up:home')
         else:
+            if is_json:
+                return JsonResponse({"ok": False, "error": "Invalid username or password"}, status=400)
             messages.success(request, ("Invalid username or password. Please try again."))
             return render(request, 'authenticate/login.html', {})
     else:

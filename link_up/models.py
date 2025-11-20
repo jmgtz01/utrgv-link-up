@@ -99,3 +99,26 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Reservation(models.Model):
+    RESOURCE_CHOICES = [
+        ("computer", "Computer"),
+        ("room", "Study Room"),
+    ]
+
+    resource_type = models.CharField(max_length=10, choices=RESOURCE_CHOICES)
+    resource_id = models.PositiveIntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reservations")
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["resource_type", "resource_id", "start", "end"]),
+            models.Index(fields=["user", "start", "end"]),
+        ]
+
+    def __str__(self):
+        start_str = self.start.strftime("%Y-%m-%d %H:%M")
+        return f"{self.get_resource_type_display()} {self.resource_id} @ {start_str} for {self.user}"

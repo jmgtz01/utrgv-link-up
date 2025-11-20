@@ -1,18 +1,26 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
-from .models import Computer, StudyRoom
 from django.forms.models import model_to_dict
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.contrib.admin.views.decorators import staff_member_required
-import json
-from .models import Computer, StudyRoom
-from .models import COMPUTER_STATUSES, ROOM_STATUSES
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 import calendar
 from calendar import HTMLCalendar
-from datetime import datetime
-from .models import Event, Venue
+from datetime import datetime, time, timedelta
+import json
+
+from .models import (
+    Computer,
+    StudyRoom,
+    COMPUTER_STATUSES,
+    ROOM_STATUSES,
+    Event,
+    Venue,
+    Reservation,
+)
 from .forms import VenueForm, EventForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -64,6 +72,8 @@ def update_status(request):
             obj.reserved_by = request.user  # Admin reserves for themself
         else:
             obj.reserved_by = None  # Any other status clears reservation
+            Reservation.objects.filter(resource_type=item_type,
+                                       resource_id=pk).delete()
         obj.save()
         return JsonResponse({"ok": True})
 
@@ -95,6 +105,10 @@ def about(request):
 
 
 def available_computers(request):
+    # Clean up expired reservations and release stale statuses
+    cleanup_expired_reservations()
+    now = timezone.localtime()
+
     icon_map = {
         "computer": {
             "available": "img/available.png",
@@ -112,47 +126,59 @@ def available_computers(request):
 
     # Precompute icon path for each item
     computers = []
+    active_comp_res = Reservation.objects.filter(
+        resource_type="computer", end__gt=now).select_related("user")
+    comp_res_map = {}
+    for r in active_comp_res:
+        if r.resource_id not in comp_res_map:
+            comp_res_map[r.resource_id] = []
+        comp_res_map[r.resource_id].append(r)
+
     for c in Computer.objects.order_by("name"):
         d = model_to_dict(c, fields=["id", "name", "x", "y", "status"])
-        is_mine = (c.reserved_by and c.reserved_by_id ==
-                   request.user.id)  # Use .id for efficiency
+        current_res_list = comp_res_map.get(c.id, [])
+        current_res = next((r for r in current_res_list
+                            if r.start <= now < r.end), None)
+        is_mine = current_res and current_res.user_id == request.user.id
 
-        # --- NEW LOGIC ---
-        if c.status == "reserved":
-            if is_mine:
-                # It's my reservation, show green check
-                d["icon"] = icon_map["computer"]["available"]
-                d["status"] = "reserved"  # JS needs to know it's "reserved"
-            else:
-                # Someone else's reservation, show lock
-                d["icon"] = icon_map["computer"]["occupied"]
-                d["status"] = "occupied"  # Treat it as occupied for the user
+        if c.status == "repair":
+            d["icon"] = icon_map["computer"]["repair"]
+            d["status"] = "repair"
+        elif current_res:
+            d["status"] = "reserved" if is_mine else "occupied"
+            d["icon"] = icon_map["computer"]["reserved" if is_mine else "occupied"]
         else:
-            # It's available, repair, or occupied (by non-reservation)
-            d["icon"] = icon_map["computer"][c.status]
-        # --- END NEW LOGIC ---
+            d["status"] = "available"
+            d["icon"] = icon_map["computer"]["available"]
 
-        d["is_mine"] = is_mine  # Send this to JavaScript
+        d["is_mine"] = bool(is_mine)
         computers.append(d)
 
     rooms = []
+    active_room_res = Reservation.objects.filter(
+        resource_type="room", end__gt=now).select_related("user")
+    room_res_map = {}
+    for r in active_room_res:
+        room_res_map.setdefault(r.resource_id, []).append(r)
+
     for r in StudyRoom.objects.order_by("name"):
         d = model_to_dict(r, fields=["id", "name", "x", "y", "status"])
-        is_mine = (r.reserved_by and r.reserved_by_id == request.user.id)
+        current_res_list = room_res_map.get(r.id, [])
+        current_res = next((res for res in current_res_list
+                            if res.start <= now < res.end), None)
+        is_mine = current_res and current_res.user_id == request.user.id
 
-        # --- REPEAT NEW LOGIC FOR ROOMS ---
-        if r.status == "reserved":
-            if is_mine:
-                d["icon"] = icon_map["room"]["available"]
-                d["status"] = "reserved"
-            else:
-                d["icon"] = icon_map["room"]["occupied"]
-                d["status"] = "occupied"
+        if r.status == "out_of_order":
+            d["icon"] = icon_map["room"]["out_of_order"]
+            d["status"] = "out_of_order"
+        elif current_res:
+            d["status"] = "reserved" if is_mine else "occupied"
+            d["icon"] = icon_map["room"]["reserved" if is_mine else "occupied"]
         else:
-            d["icon"] = icon_map["room"][r.status]
-        # --- END NEW LOGIC ---
+            d["status"] = "available"
+            d["icon"] = icon_map["room"]["available"]
 
-        d["is_mine"] = is_mine
+        d["is_mine"] = bool(is_mine)
         rooms.append(d)
 
     return render(request, "available-computers.html", {
@@ -160,8 +186,233 @@ def available_computers(request):
         "rooms": rooms,
         "map_img": "img/secondfloor.png",
         "is_admin": request.user.is_staff,
-        "is_authenticated": request.user.is_authenticated  # <-- THIS LINE IS NEW
+        "is_authenticated": request.user.is_authenticated,  # <-- THIS LINE IS NEW
+        "user_active": _active_reservation_for_user(request.user) if request.user.is_authenticated else None,
     })
+
+
+def _active_reservation_for_user(user):
+    now = timezone.localtime()
+    res = Reservation.objects.filter(user=user, end__gt=now).order_by("start").first()
+    if not res:
+        return None
+    # Fetch display name for resource
+    Model = Computer if res.resource_type == "computer" else StudyRoom
+    obj = Model.objects.filter(pk=res.resource_id).first()
+    name = obj.name if obj else f"{res.resource_type.title()} #{res.resource_id}"
+    return {
+        "id": res.id,
+        "resource_type": res.resource_type,
+        "resource_id": res.resource_id,
+        "resource_name": name,
+        "start": timezone.localtime(res.start).isoformat(),
+        "end": timezone.localtime(res.end).isoformat(),
+    }
+
+
+def _round_up_to_half_hour(dt):
+    dt = dt.replace(second=0, microsecond=0)
+    minute = dt.minute
+    if minute == 0:
+        return dt
+    if minute <= 30:
+        return dt.replace(minute=30)
+    return (dt + timedelta(hours=1)).replace(minute=0)
+
+
+def _round_down_to_half_hour(dt):
+    dt = dt.replace(second=0, microsecond=0)
+    minute = dt.minute
+    if minute < 30:
+        return dt.replace(minute=0)
+    return dt.replace(minute=30)
+
+
+def _cleanup_status_for_resource(model_cls, resource_type, now):
+    # If a resource is marked reserved/occupied but has no live reservation, free it.
+    stale = model_cls.objects.filter(
+        status__in=["reserved", "occupied"],
+        reserved_by__isnull=False
+    )
+    for obj in stale:
+        has_active = Reservation.objects.filter(
+            resource_type=resource_type,
+            resource_id=obj.id,
+            start__lte=now,
+            end__gt=now
+        ).exists()
+        if not has_active:
+            obj.status = "available"
+            obj.reserved_by = None
+            obj.save(update_fields=["status", "reserved_by"])
+
+
+def cleanup_expired_reservations():
+    now = timezone.localtime()
+    Reservation.objects.filter(end__lte=now).delete()
+    _cleanup_status_for_resource(Computer, "computer", now)
+    _cleanup_status_for_resource(StudyRoom, "room", now)
+
+
+@login_required
+@require_POST
+def cancel_reservation(request):
+    cleanup_expired_reservations()
+    now = timezone.now()
+    active = Reservation.objects.filter(user=request.user, end__gt=now)
+    count = active.count()
+    for res in active:
+        Model = Computer if res.resource_type == "computer" else StudyRoom
+        obj = Model.objects.filter(pk=res.resource_id).first()
+        if obj:
+            obj.status = "available"
+            obj.reserved_by = None
+            obj.save(update_fields=["status", "reserved_by"])
+    active.delete()
+    return JsonResponse({"ok": True, "cleared": count})
+
+
+@login_required
+@require_POST
+def available_slots(request):
+    try:
+        data = json.loads(request.body.decode())
+        item_type = data["type"]
+        pk = int(data["id"])
+    except Exception:
+        return HttpResponseBadRequest("Invalid payload")
+
+    Model = Computer if item_type == "computer" else StudyRoom
+    obj = Model.objects.filter(pk=pk).first()
+    if not obj:
+        return HttpResponseBadRequest("Not found")
+
+    cleanup_expired_reservations()
+    now = timezone.localtime()
+    tz = timezone.get_current_timezone()
+    today = now.date()
+    day_start = timezone.make_aware(datetime.combine(today, time(8, 0)), tz)
+    day_end = timezone.make_aware(datetime.combine(today, time(20, 0)), tz)
+
+    start_at = max(day_start, _round_up_to_half_hour(now))
+    reservations = list(Reservation.objects.filter(
+        resource_type=item_type,
+        resource_id=pk,
+        end__gt=now
+    ))
+    is_free_now = not any(res.start <= now < res.end for res in reservations)
+
+    slots = []
+    cursor = start_at
+    while cursor + timedelta(hours=1) <= day_end:
+        end_cursor = cursor + timedelta(hours=1)
+        overlap = any(res.start < end_cursor and res.end > cursor for res in reservations)
+        slots.append({
+            "start": cursor.isoformat(),
+            "end": end_cursor.isoformat(),
+            "available": not overlap,
+        })
+        cursor += timedelta(minutes=30)
+
+    user_res = Reservation.objects.filter(user=request.user, end__gt=now).order_by("start").first()
+    user_active = None
+    if user_res:
+        user_active = {
+            "resource_type": user_res.resource_type,
+            "resource_id": user_res.resource_id,
+            "start": timezone.localtime(user_res.start).isoformat(),
+            "end": timezone.localtime(user_res.end).isoformat(),
+        }
+
+    return JsonResponse({
+        "slots": slots,
+        "resource_name": obj.name,
+        "resource_status": obj.status,
+        "user_active": user_active,
+        "current_available": is_free_now,
+        "now": now.isoformat(),
+    })
+
+
+@login_required
+@require_POST
+def create_reservation(request):
+    try:
+        data = json.loads(request.body.decode())
+        item_type = data["type"]
+        pk = int(data["id"])
+        reserve_now = data.get("reserve_now", False)
+        start_str = data.get("start")
+    except Exception:
+        return HttpResponseBadRequest("Invalid payload")
+
+    Model = Computer if item_type == "computer" else StudyRoom
+    obj = Model.objects.filter(pk=pk).first()
+    if not obj:
+        return HttpResponseBadRequest("Not found")
+
+    cleanup_expired_reservations()
+
+    now_local = timezone.localtime()
+    if reserve_now:
+        start_dt = _round_down_to_half_hour(now_local)
+        end_dt = start_dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    else:
+        start_dt = parse_datetime(start_str)
+        if not start_dt:
+            return HttpResponseBadRequest("Invalid start time")
+        if timezone.is_naive(start_dt):
+            start_dt = timezone.make_aware(start_dt, timezone.get_current_timezone())
+        start_dt = timezone.localtime(start_dt)
+        end_dt = start_dt + timedelta(hours=1)
+
+    today = timezone.localdate()
+    if start_dt.date() != today:
+        return HttpResponseBadRequest("Reservations must be for today")
+    if start_dt.minute not in (0, 30):
+        return HttpResponseBadRequest("Start must be on the hour or half-hour")
+
+    tz = timezone.get_current_timezone()
+    earliest = timezone.make_aware(datetime.combine(today, time(8, 0)), tz)
+    latest_end = timezone.make_aware(datetime.combine(today, time(20, 0)), tz)
+    if start_dt < earliest or end_dt > latest_end:
+        return HttpResponseBadRequest("Outside reservable hours (8am-8pm)")
+
+    now = timezone.localtime()
+    if end_dt <= now:
+        return HttpResponseBadRequest("Time slot has passed")
+
+    # One active reservation across computers/rooms
+    has_active = Reservation.objects.filter(user=request.user, end__gt=now).exists()
+    if has_active:
+        return HttpResponseBadRequest("You already have an active reservation.")
+
+    # Block if resource is out of order/repair
+    if getattr(obj, "status", "available") in ["repair", "out_of_order"]:
+        return HttpResponseBadRequest("This spot is currently unavailable.")
+
+    overlap = Reservation.objects.filter(
+        resource_type=item_type,
+        resource_id=pk,
+        start__lt=end_dt,
+        end__gt=start_dt
+    ).exists()
+    if overlap:
+        return HttpResponseBadRequest("That slot is no longer available.")
+
+    Reservation.objects.create(
+        resource_type=item_type,
+        resource_id=pk,
+        user=request.user,
+        start=start_dt,
+        end=end_dt,
+    )
+
+    obj.status = "reserved"
+    obj.reserved_by = request.user
+    obj.save(update_fields=["status", "reserved_by"])
+
+    return JsonResponse({"ok": True})
 
 
 def study_groups(request):
