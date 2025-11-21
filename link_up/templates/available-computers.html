@@ -189,59 +189,6 @@ window.addEventListener('load', () => {
     return `${start.toLocaleTimeString([], opts)} - ${end.toLocaleTimeString([], opts)}`;
   }
 
-  // Login without moving location
-  function showLoginModal(targetLabel){
-    modalTitle.textContent = `Log in to reserve ${targetLabel}`;
-    modalBody.innerHTML = `
-      <div class="alert alert-info">Please log in to reserve this spot.</div>
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input class="form-control" name="username" autocomplete="username">
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input class="form-control" name="password" type="password" autocomplete="current-password">
-      </div>
-      <div class="text-danger small d-none" id="login-error"></div>
-    `;
-    modalFooter.innerHTML = `
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-      <button type="button" class="btn btn-primary" id="login-submit">Log In</button>
-    `;
-    if(!modalInstance){
-      modalInstance = new bootstrap.Modal(modalEl);
-    }
-    modalInstance.show();
-
-    modalFooter.querySelector('#login-submit').onclick = async () => {
-      const username = modalBody.querySelector('input[name="username"]').value.trim();
-      const password = modalBody.querySelector('input[name="password"]').value;
-      const err = modalBody.querySelector('#login-error');
-      err.classList.add('d-none');
-      try{
-        const resp = await fetch(LOGIN_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken,
-            "X-Requested-With": "XMLHttpRequest"
-          },
-          body: JSON.stringify({ username, password })
-        });
-        if(resp.ok){
-          location.reload();
-        }else{
-          const data = await resp.json().catch(() => ({}));
-          err.textContent = data.error || "Login failed. Please try again.";
-          err.classList.remove('d-none');
-        }
-      }catch(ex){
-        err.textContent = "Network error.";
-        err.classList.remove('d-none');
-      }
-    };
-  }
-
   // Pick slot. Can also cancel current reservation 
   async function openReservationModal(marker){
     const type = marker.dataset.type;
@@ -402,7 +349,9 @@ window.addEventListener('load', () => {
     }
 
     if (!isAuthenticated){
-      showLoginModal(m.title || "this spot");
+      if (typeof requireLogin === 'function') {
+        requireLogin();
+      }
       return;
     }
 

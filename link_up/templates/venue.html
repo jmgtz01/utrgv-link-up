@@ -1,36 +1,28 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    {% if user.is_authenticated %}
-        {% if user.manager %}
-        <h1>Venues</h1>
-        <br>
-        <a type="button" class="btn btn-secondary" href="{% url 'link_up:events' %}">Event Page</a>
-        <br>
-        <br>
-        <div class="d-inline-flex d-block mx-auto">
-            <table class="table table-hover table-striped table-bordered">
-                {% for venue in venue_list %}
-                    <tr>
-                        <td style="white-space: nowrap;">
-                            <a href="{% url 'link_up:show-venue' venue.id %}">{{ venue }}</a>
-                        </td>
-                        <td class="text-end" style="width: 1%;">
-                            <a href="{% url 'link_up:update-venue' venue.id %}"
-                               class="btn btn-outline-secondary btn-sm">Update</a>
-                        </td>
-                        <td class="text-end" style="width: 1%;">
-                            <a href="{% url 'link_up:delete-venue' venue.id %}"
-                               class="btn btn-outline-danger btn-sm">Delete</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </div>
-        {% endif %}
-    {% else %}
-        <h1>Sorry! You Must Be Logged In To View This Page...</h1>
-        <br>
-        <a type="button" class="btn btn-secondary" href="{% url 'login' %}">Login Here</a>
-    {% endif %}
+    <h1>Venues</h1>
+    <br>
+    <a type="button" class="btn btn-secondary" href="{% url 'link_up:events' %}">Event Page</a>
+    <br>
+    <br>
+    <div class="d-inline-flex d-block mx-auto">
+        <table class="table table-hover table-striped table-bordered">
+            {% for venue in venue_list %}
+                <tr>
+                    <td style="white-space: nowrap;">
+                        <a href="{% url 'link_up:show-venue' venue.id %}">{{ venue }}</a>
+                    </td>
+                    <td class="text-end" style="width: 1%;">
+                        <a href="{% url 'link_up:update-venue' venue.id %}"
+                           class="btn btn-outline-secondary btn-sm">Update</a>
+                    </td>
+                    <td class="text-end" style="width: 1%;">
+                        <a href="{% url 'link_up:delete-venue' venue.id %}"
+                           class="btn btn-outline-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock content %}

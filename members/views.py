@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
 from .forms import RegisterUserForm
 import json
 
@@ -21,12 +23,17 @@ def login_user(request):
         else:
             username = request.POST.get("username", "")
             password = request.POST.get("password", "")
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if not next_url:
+            next_url = request.META.get("HTTP_REFERER")
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             if is_json:
                 return JsonResponse({"ok": True})
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
             return redirect('link_up:home')
         else:
             if is_json:

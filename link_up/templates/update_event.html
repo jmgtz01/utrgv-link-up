@@ -1,23 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-  {% if user.is_authenticated %}
-    {% if user.email == event.email_address %}
-      <h1>Update Event</h1>
-      <br>
-      <form action="" method=POST>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <br>
-        <input type="submit" value="Update" class="btn btn-secondary">
-        <a href="{% url 'link_up:events' %}" class="btn btn-primary">Events Page</a>
-      </form>
-    {% else %}
-      <h2>Access Denied</h2>
-      <p>Only the event's Manager can update this event...</p>
-    {% endif %}
-  {% else %}
-    <h1>Sorry! You Must Be Logged In To View This Page...</h1>
+  <h1>Update Event</h1>
+  <br>
+  <form action="" method=POST>
+    {% csrf_token %}
+    {{ form.as_p }}
     <br>
-    <a type="button" class="btn btn-secondary" href="{% url 'login' %}">Login Here</a>
-  {% endif %}
+    <input type="submit" value="Update" class="btn btn-secondary">
+    <a href="{% url 'link_up:events' %}" class="btn btn-primary">Events Page</a>
+  </form>
 {% endblock content %}

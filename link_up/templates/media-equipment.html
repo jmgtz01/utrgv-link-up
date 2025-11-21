@@ -27,6 +27,7 @@
           <th scope="col">Material Type</th>
           <th scope="col">Loan Period</th>
           <th scope="col">Location</th>
+          <th scope="col">Available</th>
           <th scope="col">Hold</th>
         </tr>
       </thead>
@@ -35,42 +36,49 @@
           <td>Digital Camcorder</td>
           <td>Length of Semester</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="digital-camcorder" data-default="3">3</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="digital-camcorder">Hold</button></td>
         </tr>
         <tr>
           <td>Digital Camera</td>
           <td>Length of Semester</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="digital-camera" data-default="2">2</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="digital-camera">Hold</button></td>
         </tr>
         <tr>
           <td>Laptop</td>
           <td>14 days</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="laptop" data-default="5">5</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="laptop">Hold</button></td>
         </tr>
         <tr>
           <td>Mobile Phone Charger</td>
           <td>2 hours check out</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="phone-charger" data-default="4">4</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="phone-charger">Hold</button></td>
         </tr>
         <tr>
           <td>Projector</td>
           <td>Length of Semester</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="projector" data-default="0">0</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="projector">Hold</button></td>
         </tr>
         <tr>
           <td>Graphing Calculators (TI-84 CE Plus)</td>
           <td>Length of Semester</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="calc-ti84" data-default="6">6</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="calc-ti84">Hold</button></td>
         </tr>
         <tr>
           <td>Graphing Calculators (models vary, batteries not included)</td>
           <td>7 days</td>
           <td>Brownsville and Edinburg</td>
+          <td><span class="badge text-bg-secondary" data-qty data-item="calc-varied" data-default="3">3</span></td>
           <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="calc-varied">Hold</button></td>
         </tr>
       </tbody>
@@ -78,10 +86,24 @@
   </div>
 </div>
 <script>
-// Demo: clicking Hold marks it "Request Sent" for 60 minutes (persists via localStorage)
+// Clicking Hold marks it "Request Sent" for 60 minutes (persists via localStorage) and decrements available count
 document.addEventListener('DOMContentLoaded', () => {
   const HOLD_MS = 60 * 60 * 1000;
   const prefix = 'mediaHold:';
+  const qtyPrefix = 'mediaQty:';
+
+  const qtyMap = {};
+  document.querySelectorAll('[data-qty]').forEach(span => {
+    const key = qtyPrefix + span.dataset.item;
+    const stored = localStorage.getItem(key);
+    const val = stored !== null ? Number(stored) : Number(span.dataset.default || 0);
+    qtyMap[span.dataset.item] = val;
+    span.textContent = val;
+    if (val <= 0) {
+      const btn = document.querySelector(`button[data-hold][data-item="${span.dataset.item}"]`);
+      if (btn) btn.disabled = true;
+    }
+  });
 
   function setHeld(btn, held){
     if (held){
@@ -99,6 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('button[data-hold]').forEach(btn => {
     const key = prefix + btn.dataset.item;
+    const qtyKey = qtyPrefix + btn.dataset.item;
+    const qtySpan = document.querySelector(`span[data-qty][data-item="${btn.dataset.item}"]`);
+
     const expiresAt = localStorage.getItem(key);
     const now = Date.now();
     if (expiresAt && Number(expiresAt) > now){
@@ -111,12 +136,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btn.addEventListener('click', () => {
+      const currentQty = qtyMap[btn.dataset.item] ?? 0;
+      if (currentQty <= 0){
+        alert('No inventory left for this item.');
+        return;
+      }
+      // decrement qty and persist
+      const newQty = currentQty - 1;
+      qtyMap[btn.dataset.item] = newQty;
+      if (qtySpan) qtySpan.textContent = newQty;
+      localStorage.setItem(qtyKey, newQty);
+
       const until = Date.now() + HOLD_MS;
       localStorage.setItem(key, until);
       setHeld(btn, true);
       setTimeout(() => {
         localStorage.removeItem(key);
         setHeld(btn, false);
+        // restore quantity after hold expires
+        qtyMap[btn.dataset.item] = (qtyMap[btn.dataset.item] ?? 0) + 1;
+        localStorage.setItem(qtyKey, qtyMap[btn.dataset.item]);
+        if (qtySpan) qtySpan.textContent = qtyMap[btn.dataset.item];
       }, HOLD_MS);
     });
   });

@@ -31,13 +31,19 @@ from django.urls import reverse
 def update_position(request):
     try:
         data = json.loads(request.body.decode())
-        item_type = data["type"]      # "computer" or "room"
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Invalid JSON format")
+
+    try:
+        item_type = data["type"]
         pk = int(data["id"])
         x = float(data["x"])
         y = float(data["y"])
-    except Exception:
-        return HttpResponseBadRequest("Invalid payload")
-
+    except KeyError as e:
+        return HttpResponseBadRequest(f"Missing required field: {e}")
+    except ValueError:
+        return HttpResponseBadRequest("ID must be an int, coordinates must be floats")
+    
     obj = (Computer if item_type ==
            "computer" else StudyRoom).objects.filter(pk=pk).first()
     if not obj:
@@ -53,11 +59,17 @@ def update_position(request):
 def update_status(request):
     try:
         data = json.loads(request.body.decode())
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Invalid JSON format")
+
+    try:
         item_type = data["type"]
         pk = int(data["id"])
-        new_status = data["status"]  # This is the *desired* new status
-    except Exception:
-        return HttpResponseBadRequest("Invalid payload")
+        new_status = data["status"]
+    except KeyError as e:
+        return HttpResponseBadRequest(f"Missing required field: {e}")
+    except ValueError:
+        return HttpResponseBadRequest("ID must be an integer")
 
     Model = (Computer if item_type == "computer" else StudyRoom)
     obj = Model.objects.filter(pk=pk).first()
@@ -186,7 +198,7 @@ def available_computers(request):
         "rooms": rooms,
         "map_img": "img/secondfloor.png",
         "is_admin": request.user.is_staff,
-        "is_authenticated": request.user.is_authenticated,  # <-- THIS LINE IS NEW
+        "is_authenticated": request.user.is_authenticated, 
         "user_active": _active_reservation_for_user(request.user) if request.user.is_authenticated else None,
     })
 
@@ -208,18 +220,6 @@ def _active_reservation_for_user(user):
         "start": timezone.localtime(res.start).isoformat(),
         "end": timezone.localtime(res.end).isoformat(),
     }
-
-
-def _round_up_to_half_hour(dt):
-    dt = dt.replace(second=0, microsecond=0)
-    minute = dt.minute
-    if minute == 0:
-        return dt
-    if minute <= 30:
-        return dt.replace(minute=30)
-    return (dt + timedelta(hours=1)).replace(minute=0)
-
-
 def _round_down_to_half_hour(dt):
     dt = dt.replace(second=0, microsecond=0)
     minute = dt.minute
@@ -277,10 +277,16 @@ def cancel_reservation(request):
 def available_slots(request):
     try:
         data = json.loads(request.body.decode())
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Invalid JSON format")
+
+    try:
         item_type = data["type"]
         pk = int(data["id"])
-    except Exception:
-        return HttpResponseBadRequest("Invalid payload")
+    except KeyError as e:
+        return HttpResponseBadRequest(f"Missing required field: {e}")
+    except ValueError:
+        return HttpResponseBadRequest("ID must be an integer")
 
     Model = Computer if item_type == "computer" else StudyRoom
     obj = Model.objects.filter(pk=pk).first()
@@ -337,14 +343,22 @@ def available_slots(request):
 @login_required
 @require_POST
 def create_reservation(request):
+    # 1. Decode JSON first 
     try:
         data = json.loads(request.body.decode())
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Invalid JSON format")
+
+    # 2. Extract and Validate Data
+    try:
         item_type = data["type"]
         pk = int(data["id"])
         reserve_now = data.get("reserve_now", False)
         start_str = data.get("start")
-    except Exception:
-        return HttpResponseBadRequest("Invalid payload")
+    except KeyError as e:
+        return HttpResponseBadRequest(f"Missing required field: {e}")
+    except ValueError:
+        return HttpResponseBadRequest("ID must be an integer")
 
     Model = Computer if item_type == "computer" else StudyRoom
     obj = Model.objects.filter(pk=pk).first()
