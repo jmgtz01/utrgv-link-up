@@ -291,10 +291,10 @@ def available_slots(request):
     now = timezone.localtime()
     tz = timezone.get_current_timezone()
     today = now.date()
-    day_start = timezone.make_aware(datetime.combine(today, time(0, 0)), tz)
-    day_end = timezone.make_aware(datetime.combine(today, time(23, 59)), tz)
+    day_start = timezone.make_aware(datetime.combine(today, time(8, 0)), tz)
+    day_end = timezone.make_aware(datetime.combine(today, time(20, 0)), tz)
 
-    start_at = max(day_start, _round_up_to_half_hour(now))
+    start_at = max(day_start, _round_down_to_half_hour(now))
     reservations = list(Reservation.objects.filter(
         resource_type=item_type,
         resource_id=pk,
