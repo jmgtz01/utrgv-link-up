@@ -4,3 +4,50 @@ body {
 .flatpickr-calendar {
   z-index: 9999 !important;
 }
+
+/* --- Add this to index.css --- */
+
+/* Import Academic Fonts (Merriweather for titles, Open Sans for text) */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
+
+.uni-card {
+    border: none;
+    border-top: 4px solid #005cbf; /* Academic Blue accent */
+    /* box-shadow: 0 4px 8px rgba(0,0,0,0.1); Soft shadow */
+    /* CHANGE: Darker shadow (0.2 opacity) and larger blur (20px) */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.uni-header {
+    font-family: 'Merriweather', serif;
+    /* color: #333; */
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+
+    /* CHANGE: Gradient Text Effect */
+    background: linear-gradient(to right, #005cbf, #6610f2); /* Blue to Purple */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block; /* Required for gradient text to render correctly on some browsers */
+}
+
+.uni-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #6c757d; /* Muted grey for labels */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.uni-link {
+    color: #005cbf;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.uni-link:hover {
+    text-decoration: underline;
+}

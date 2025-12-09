@@ -1,32 +1,69 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block extra_css %}
-{% endblock extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+{% endblock extra_css %} 
+
 {% block content %}
-    <div>
-        {% if user.is_authenticated %}
-            {% if user.manager %}
-                <h1>{{ venue }}</h1>
-                <br>
-                {{ venue.address }}
-                <br>
-                {{ venue.zip_code }}
-                <br>
-                {{ venue.phone }}
-                <br>
-                <a href="{{ venue.web }}">{{ venue.web }}</a>
-                <br>
-                {{ venue.email_address }}
-                <br>
-                <br>
-                <a type="button"
-                        class="btn btn-secondary"
-                        href="{% url 'link_up:events' %}">Events Page</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            {% if user.is_authenticated %}
+                {% if user.manager %}
+                
+                <div class="card uni-card p-4">
+                    <div class="card-body text-center">
+                        
+                        <h2 class="uni-header">{{ venue }}</h2>
+
+                        <div class="text-start px-3">
+                            <div class="mb-3">
+                                <span class="d-block uni-label"><strong>Address:</strong></span>
+                                <span>Street: </span>{{ venue.address }}<br>
+                                <span>City: </span>{{ venue.city }}<br>
+                                <span>Zip: </span>{{ venue.zip_code }}
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="d-block uni-label"><strong>Contact:</strong></span>
+                                <span>Phone Number: </span>{{ venue.phone }}<br>
+                                <span>Email Address: </span>{{ venue.email_address }}
+                            </div>
+
+                            <div class="mb-4">
+                                <span class="d-block uni-label"><strong>Web Portal:</strong></span>
+                                <a href="{{ venue.web }}" class="uni-link" target="_blank">{{ venue.web }}</a>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a type="button" class="btn btn-secondary" href="{% url 'link_up:list-venues' %}">
+                                Venue's Page
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {% endif %}
+            
+            {% else %}
+                
+                <div class="card uni-card text-center">
+                    <div class="card-header bg-danger text-white">
+                        <strong>Restricted Access</strong>
+                    </div>
+                    <div class="card-body p-5">
+                        <h4 class="card-title mb-4" style="font-family: 'Merriweather', serif;">Authentication Required</h4>
+                        <p class="card-text text-muted mb-4">Please log in to the university portal to view this venue.</p>
+                        <a type="button" class="btn btn-secondary px-4" href="{% url 'login' %}">Login Here</a>
+                    </div>
+                </div>
+
             {% endif %}
-        {% else %}
-            <h1>Sorry! You Must Be Logged In To View This Page...</h1>
-            <br>
-            <a type="button" class="btn btn-secondary" href="{% url 'login' %}">Login Here</a>
-        {% endif %}
+
+        </div>
     </div>
+</div>
 {% endblock content %}
