@@ -4,49 +4,45 @@
 {% endblock extra_css %}
 {% block content %}
     <div>
-        {% if user.is_authenticated %}
-            {% if user.manager %}
-                <h1>Add Venue</h1>
+        <h1>Add Venue</h1>
+        <br>
+        <hr>
+        {% if submitted %}
+            <div>
+                <h2>Your Venue Was Submitted Succefully!!!</h2>
                 <br>
-                <hr>
-                {% if submitted %}
-                    <div>
-                        <h2>Your Venue Was Submitted Succefully!!!</h2>
-                        <br>
-                        <a type="button"
-                        class="btn btn-secondary"
-                        href="{% url 'link_up:events' %}">Events Page</a>
-                    </div>
-                {% else %}
-                    <form action="" method="POST">
-                        {% csrf_token %}
-                        {% for field in form %}
-                            {% if field.name != 'email_address' %}
-                                <p>
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        {% for error in field.errors %}<span style="color: red; font-weight: bold;">{{ error }}</span>{% endfor %}
-                                    {% endif %}
-                                </p>
-                            {% endif %}
-                        {% endfor %}
+                <a type="button"
+                class="btn btn-secondary"
+                href="{% url 'link_up:events' %}">Events Page</a>
+            </div>
+        {% else %}
+            <form action="" method="POST">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.name != 'email_address' %}
                         <p>
-                            {{ form.email_address.label_tag }}
-                            {% if form.email_address.errors %}
-                                {% for error in form.email_address.errors %}
-                                    <div style="color: red; font-weight: bold;">* {{ error }}</div>
-                                {% endfor %}
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                {% for error in field.errors %}<span style="color: red; font-weight: bold;">{{ error }}</span>{% endfor %}
                             {% endif %}
-                            {{ form.email_address }}
                         </p>
-                        <input type="submit" value="Submit" class="btn btn-secondary">
-                        <a type="button"
-                        class="btn btn-secondary"
-                        href="{% url 'link_up:events' %}">Events Page</a>
-                    </form>
-                {% endif %}
-            {% endif %}
+                    {% endif %}
+                {% endfor %}
+                <p>
+                    {{ form.email_address.label_tag }}
+                    {% if form.email_address.errors %}
+                        {% for error in form.email_address.errors %}
+                            <div style="color: red; font-weight: bold;">* {{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    {{ form.email_address }}
+                </p>
+                <input type="submit" value="Submit" class="btn btn-secondary">
+                <a type="button"
+                class="btn btn-secondary"
+                href="{% url 'link_up:events' %}">Events Page</a>
+            </form>
         {% endif %}
     </div>
 {% endblock content %}

@@ -4,9 +4,23 @@
 {% block content %}
 <h1>Available Computers</h1>
 {% if is_admin %}
+{# Staff-only edit controls #}
 <div class="toolbar" style="margin:.5rem 0 1rem; display:flex; gap:.5rem;">
   <button id="toggle-edit" class="btn btn-sm">Edit mode: Off</button>
   <small style="opacity:.8">Click a marker to cycle status. In Edit mode, drag to reposition (saves to server).</small>
+</div>
+{% endif %}
+{% if user_active %}
+{# Active reservation banner for current user #}
+<div class="alert alert-info d-flex align-items-center justify-content-between" style="gap:.5rem;">
+  <div>
+    You have an active reservation: <strong>{{ user_active.resource_name }}</strong>
+    ({{ user_active.resource_type }}) until
+    <span id="active-res-end" data-end="{{ user_active.end }}">{{ user_active.end }}</span>
+  </div>
+  <div>
+    <button id="cancel-reservation" class="btn btn-danger btn-sm">Cancel reservation</button>
+  </div>
 </div>
 {% endif %}
 <style>
@@ -17,44 +31,42 @@
     aspect-ratio: 1/1; /* change if your map isn't square */
   }
   .marker{
-    position:absolute; width:42px; height:42px; transform:translate(-50%,-50%);
+    position:absolute; width:36px; height:36px; transform:translate(-50%,-50%);
     display:grid; place-items:center; border-radius:10px; background:rgba(0,0,0,.35);
     backdrop-filter:blur(2px); cursor:pointer; user-select:none;
     left: calc(var(--x) * 1%); top: calc(var(--y) * 1%);
     transition: box-shadow .1s ease, transform .06s ease;
   }
-  .marker img{ width:38px; height:38px; object-fit:contain; pointer-events:none; }
+  .marker img{ width:32px; height:32px; object-fit:contain; pointer-events:none; }
   .marker.editing{ box-shadow:0 0 0 3px rgba(255,255,255,.25) inset; cursor:grab; }
   .label{
-    position:absolute; top:40px; left:50%; transform:translateX(-50%);
+    position:absolute; top:32px; left:50%; transform:translateX(-50%);
     font-size:.85rem; white-space:nowrap; text-shadow:0 1px 2px #000;
     pointer-events:none;
   }
-.click-tooltip {
-  position: fixed; /* Positions relative to the window */
-  visibility: hidden; /* Hidden by default */
-  opacity: 0;
-  padding: 6px 12px;
-  background: #282828;
-  color: white;
-  border-radius: 6px;
-  border: 1px solid #555;
-  transform: translate(-50%, -120%); /* Positions it above the cursor */
-  pointer-events: none; /* Lets you click "through" it */
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  font-size: 0.9rem;
-  z-index: 1080; /* On top of other elements */
-  white-space: nowrap;
-}
-.click-tooltip.show {
-  visibility: visible;
-  opacity: 1;
-}
+  .click-tooltip {
+    position: fixed;
+    visibility: hidden;
+    opacity: 0;
+    padding: 6px 12px;
+    background: #282828;
+    color: white;
+    border-radius: 6px;
+    border: 1px solid #555;
+    transform: translate(-50%, -120%);
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    font-size: 0.9rem;
+    z-index: 1080;
+    white-space: nowrap;
+  }
+  .click-tooltip.show { visibility: visible; opacity: 1; }
 </style>
 
 <div class="map-wrap" id="map">
-<div id="click-tooltip" class="click-tooltip"></div>
-{% for c in computers %}
+  {# Tooltip anchor and all markers #}
+  <div id="click-tooltip" class="click-tooltip"></div>
+  {% for c in computers %}
     <div class="marker"
          data-id="{{ c.id }}" data-type="computer" data-status="{{ c.status }}"
          data-is-mine="{{ c.is_mine|yesno:'true,false' }}" style="--x: {{ c.x|floatformat:-2 }}; --y: {{ c.y|floatformat:-2 }};"
@@ -64,7 +76,7 @@
     </div>
   {% endfor %}
 
-{% for r in rooms %}
+  {% for r in rooms %}
     <div class="marker"
          data-id="{{ r.id }}" data-type="room" data-status="{{ r.status }}"
          data-is-mine="{{ r.is_mine|yesno:'true,false' }}" style="--x: {{ r.x|floatformat:-2 }}; --y: {{ r.y|floatformat:-2 }};"
@@ -74,17 +86,33 @@
     </div>
   {% endfor %}
 </div>
+
+<!-- Unified modal for login/reservation -->
+<div class="modal fade" id="reservation-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="reservation-modal-title">Reserve</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="reservation-modal-body">Loading...</div>
+      <div class="modal-footer border-secondary" id="reservation-modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+window.addEventListener('load', () => {
 (function(){
+  // Page-level setup  
   const isAdmin = {{ is_admin|yesno:"true,false" }};
   const isAuthenticated = {{ is_authenticated|yesno:"true,false" }};
-  
-  // --- NEW TOOLTIP VARIABLES ---
+
   const tooltip = document.getElementById('click-tooltip');
   let tooltipTimer = null;
-  // --- END NEW ---
 
-  // EXACT filenames (all in static/img/)
   const ICONS = {
     computer: {
       order: ["available","reserved","occupied","repair"],
@@ -106,9 +134,18 @@
     }
   };
 
-  // URL for saving positions (requires name='update_position' in urls.py)
   const SAVE_URL = "{% url 'link_up:update_position' %}";
   const STATUS_URL = "{% url 'link_up:update_status' %}";
+  const SLOTS_URL = "{% url 'link_up:available_slots' %}";
+  const RESERVE_URL = "{% url 'link_up:create_reservation' %}";
+  const LOGIN_URL = "{% url 'login' %}";
+  const CANCEL_URL = "{% url 'link_up:cancel_reservation' %}";
+
+  const modalEl = document.getElementById('reservation-modal');
+  const modalTitle = document.getElementById('reservation-modal-title');
+  const modalBody = document.getElementById('reservation-modal-body');
+  const modalFooter = document.getElementById('reservation-modal-footer');
+  let modalInstance = null;
 
   function getCookie(name){
     let cookieValue = null;
@@ -128,30 +165,147 @@
 
   const map = document.getElementById('map');
   const toggleBtn = document.getElementById('toggle-edit');
+  const cancelBtn = document.getElementById('cancel-reservation');
   let editMode = false;
   let dragging = null, pointerId = null;
 
-  // --- NEW HELPER FUNCTION ---
   function showTooltip(text, e) {
     if (tooltipTimer) {
-      clearTimeout(tooltipTimer); // Clear any existing fade-out
+      clearTimeout(tooltipTimer);
     }
     tooltip.textContent = text;
-    // Position using the click event coordinates
     tooltip.style.left = e.clientX + 'px';
     tooltip.style.top = e.clientY + 'px';
-    
     tooltip.classList.add('show');
-    
     tooltipTimer = setTimeout(() => {
       tooltip.classList.remove('show');
-    }, 2000); // Hide after 2 seconds
+    }, 2000);
   }
-  // --- END NEW ---
 
+  function formatRange(startIso, endIso){
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    const opts = { hour: 'numeric', minute: '2-digit' };
+    return `${start.toLocaleTimeString([], opts)} - ${end.toLocaleTimeString([], opts)}`;
+  }
 
-  // NEW: Wrap this in an if(isAdmin) check
-  if (isAdmin) {
+  // Pick slot. Can also cancel current reservation 
+  async function openReservationModal(marker){
+    const type = marker.dataset.type;
+    const name = marker.title || marker.querySelector('.label')?.textContent || 'this spot';
+    modalTitle.textContent = `Reserve ${name}`;
+    modalBody.innerHTML = `<p class="text-muted mb-2">Loading available times...</p>`;
+    modalFooter.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`;
+    if(!modalInstance){
+      modalInstance = new bootstrap.Modal(modalEl);
+    }
+    modalInstance.show();
+
+    let data;
+    try{
+      const resp = await fetch(SLOTS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({ type, id: marker.dataset.id })
+      });
+      if(!resp.ok){
+        modalBody.innerHTML = `<div class="alert alert-danger">Unable to load slots.</div>`;
+        return;
+      }
+      data = await resp.json();
+    }catch(ex){
+      modalBody.innerHTML = `<div class="alert alert-danger">Unable to load slots.</div>`;
+      return;
+    }
+
+    const hasOtherActive = data.user_active && !(data.user_active.resource_type === type && String(data.user_active.resource_id) === marker.dataset.id);
+    if (hasOtherActive){
+      const message = `You already have an active reservation until ${formatRange(data.user_active.start, data.user_active.end).split(' - ')[1]}. Cancel it to reserve another slot.`;
+      modalBody.innerHTML = `
+        <div class="alert alert-warning mb-3">${message}</div>
+        <button type="button" class="btn btn-danger" id="modal-cancel-res">Cancel current reservation</button>
+      `;
+      modalFooter.innerHTML = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`;
+      const btn = modalBody.querySelector('#modal-cancel-res');
+      btn.onclick = async () => {
+        btn.disabled = true;
+        try{
+          const resp = await fetch(CANCEL_URL, {
+            method: "POST",
+            headers: { "Content-Type":"application/json", "X-CSRFToken": csrftoken },
+            body: JSON.stringify({})
+          });
+          if(resp.ok){
+            location.reload();
+          }else{
+            btn.disabled = false;
+            modalBody.innerHTML += `<div class="text-danger mt-2">Cancel failed. Please reload.</div>`;
+          }
+        }catch(ex){
+          btn.disabled = false;
+          modalBody.innerHTML += `<div class="text-danger mt-2">Network error. Please reload.</div>`;
+        }
+      };
+      return;
+    }
+
+    const availableSlots = data.slots.filter(s => s.available);
+    if (!availableSlots.length){
+      modalBody.innerHTML = `<div class="alert alert-secondary">No slots remaining today.</div>`;
+      return;
+    }
+
+    const list = availableSlots.map((slot, idx) => {
+      const label = formatRange(slot.start, slot.end);
+      return `<div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="slot-choice" id="slot-${idx}" value="${slot.start}" ${idx===0 ? 'checked' : ''}>
+                <label class="form-check-label" for="slot-${idx}">${label}</label>
+              </div>`;
+    }).join('');
+
+    modalBody.innerHTML = `
+      <p class="mb-2">Select a 1-hour slot (today):</p>
+      ${list}
+      <div class="text-danger small d-none" id="reserve-error"></div>
+    `;
+    modalFooter.innerHTML = `
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-primary" id="reserve-submit">Reserve</button>
+    `;
+
+    modalFooter.querySelector('#reserve-submit').onclick = async () => {
+      const chosen = modalBody.querySelector('input[name="slot-choice"]:checked');
+      if(!chosen) return;
+      const err = modalBody.querySelector('#reserve-error');
+      err.classList.add('d-none');
+      try{
+        const resp = await fetch(RESERVE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify({ type, id: marker.dataset.id, start: chosen.value })
+        });
+        if(resp.ok){
+          location.reload();
+        }else{
+          const d = await resp.text();
+          err.textContent = d || "Could not reserve. Please retry.";
+          err.classList.remove('d-none');
+        }
+      }catch(ex){
+        err.textContent = "Network error.";
+        err.classList.remove('d-none');
+      }
+    };
+  }
+
+  // Admin edit toggles  
+  if (isAdmin && toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       editMode = !editMode;
       toggleBtn.textContent = `Edit mode: ${editMode ? 'On' : 'Off'}`;
@@ -159,29 +313,20 @@
     });
   }
 
-  // Click cycles status OR user reserves
-  // Click cycles status OR user reserves
+  // User click on marker (admin cycles to add out of order/available; users open/reserve; guests login)  
   map.addEventListener('click', (e) => {
-    
-    // Check if we're in edit mode
-    if (editMode) return; 
-    
-    // Get the marker that was clicked
+    if (editMode) return;
     const m = e.target.closest('.marker');
-
-    // If no marker was clicked (e.g., clicked empty map), do nothing.
     if (!m) return;
-    
-    // --- From here on, we KNOW a marker was clicked ---
+    const status = m.dataset.status;
 
-    // --- ADMIN CLICK LOGIC ---
     if (isAdmin) {
       const type = m.dataset.type;
       const current = m.dataset.status;
       const order = ICONS[type].order;
-      
+
       const next = order[(order.indexOf(current) + 1) % order.length];
-      
+
       m.dataset.status = next;
       m.title = m.title.replace(/\(.+\)$/, `(${next.replace(/_/g,' ')})`);
       m.querySelector('img').src = ICONS[type].urls[next];
@@ -195,84 +340,25 @@
       }).then(r => {
         if (!r.ok) console.error("Status save failed:", r.status);
       }).catch(err => console.error(err));
-      
-    // --- REGULAR USER CLICK LOGIC ---
-    } else if (isAuthenticated) {
-      const type = m.dataset.type;
-      const currentStatus = m.dataset.status;
-      const isMyReservation = m.dataset.isMine === 'true';
-
-      let new_status = null;
-      let new_icon_url = null;
-      let new_is_mine = m.dataset.isMine;
-      let new_title_status = null;
-      let tooltip_text = null;
-
-      // Case 1: User clicks "Available"
-      if (currentStatus === "available") {
-        new_status = "reserved";
-        new_icon_url = ICONS[type].urls["available"];
-        new_is_mine = "true";
-        new_title_status = "Reserved";
-        tooltip_text = "Spot Reserved!";
-      } 
-      // Case 2: User clicks "My Reservation"
-      else if (currentStatus === "reserved" && isMyReservation) {
-        new_status = "available";
-        new_icon_url = ICONS[type].urls["available"];
-        new_is_mine = "false";
-        new_title_status = "Available";
-        tooltip_text = "Reservation Cancelled.";
-      } 
-      // Case 3: User clicks an unusable spot
-      else {
-        if (currentStatus === "occupied") {
-          showTooltip("This spot is already in use.", e);
-        } else if (currentStatus === "repair" || currentStatus === "out_of_order") {
-          showTooltip("This spot is currently out of order.", e);
-        }
-        return; // Do nothing
-      }
-
-      // --- Update Visuals Immediately ---
-      m.dataset.status = new_status;
-      m.dataset.isMine = new_is_mine;
-      m.querySelector('img').src = new_icon_url;
-      m.title = m.title.replace(/\(.+\)$/, `(${new_title_status})`);
-      
-      showTooltip(tooltip_text, e);
-
-      // --- Send to Server ---
-      fetch(STATUS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
-        body: JSON.stringify({ id: m.dataset.id, type: type, status: new_status })
-      }).then(r => {
-        if (!r.ok) {
-           console.error("Reservation failed");
-           showTooltip("Reservation failed. Please refresh.", e);
-        }
-      }).catch(err => console.error(err));
+      return;
     }
-    // --- NOT LOGGED IN LOGIC (This block is new) ---
-    else {
-      // This code ONLY runs if a marker was clicked AND user is not logged in
-      const currentStatus = m.dataset.status;
 
-      if (currentStatus === "available") {
-        // It's available, so tell them to log in
-        showTooltip("Please log in to reserve a spot.", e);
-      } else if (currentStatus === "occupied") {
-        showTooltip("This spot is already in use.", e);
-      } else if (currentStatus === "repair" || currentStatus === "out_of_order") {
-        showTooltip("This spot is currently out of order.", e);
-      }
-      // If status is "reserved" (and not theirs, since they aren't logged in)
-      // it will be treated as "occupied" by the view, so the check above handles it.
+    if (status === "repair" || status === "out_of_order"){
+      showTooltip("This spot is currently out of order.", e);
+      return;
     }
+
+    if (!isAuthenticated){
+      if (typeof requireLogin === 'function') {
+        requireLogin();
+      }
+      return;
+    }
+
+    openReservationModal(m);
   });
 
-  // Drag to move and save
+  // Drag to move (admin edit mode)  
   map.addEventListener('pointerdown', (e) => {
     if (!isAdmin || !editMode) return;
     const m = e.target.closest('.marker');
@@ -298,7 +384,6 @@
     const x = dragging.style.getPropertyValue('--x').trim();
     const y = dragging.style.getPropertyValue('--y').trim();
 
-    // Persist new position to backend
     fetch(SAVE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
@@ -314,6 +399,40 @@
     dragging.releasePointerCapture(pointerId);
     dragging = null; pointerId = null;
   });
+
+  // Cancel active reservation banner  
+  if (cancelBtn){
+    // Display of end time
+    const endSpan = document.getElementById('active-res-end');
+    if (endSpan && endSpan.dataset.end){
+      const endTxt = new Date(endSpan.dataset.end);
+      const opts = { hour: 'numeric', minute: '2-digit' };
+      endSpan.textContent = endTxt.toLocaleTimeString([], opts);
+    }
+    cancelBtn.addEventListener('click', async () => {
+      cancelBtn.disabled = true;
+      try{
+        const resp = await fetch(CANCEL_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+          body: JSON.stringify({})
+        });
+        if (resp.ok){
+          location.reload();
+        } else {
+          cancelBtn.disabled = false;
+          showTooltip("Cancel failed. Please reload.", { clientX: 20, clientY: 20 });
+        }
+      }catch(ex){
+        cancelBtn.disabled = false;
+        showTooltip("Network error cancelling.", { clientX: 20, clientY: 20 });
+      }
+    });
+  }
+
+  // Auto-refresh every 60 seconds to reflect time-based status changes
+  setInterval(() => { window.location.reload(); }, 60000);
 })();
+});
 </script>
 {% endblock %}
