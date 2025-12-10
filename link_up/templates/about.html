@@ -1,7 +1,71 @@
 {% extends "base.html" %}
-
-{%  block content %}
-
-<h1>About Page</h1>
-
-{% endblock %}
+{% block content %}
+    <div class="mt-5">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-4 fw-bold">About UTRGV Link-Up</h1>
+                <p class="lead text-muted mt-3">
+                    Your all-in-one companion for navigating campus resources.
+                    UTRGV Link-Up bridges the gap between students and the tools they need to succeed.
+                </p>
+            </div>
+        </div>
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-5">
+                        <h3 class="card-title">Our Mission</h3>
+                        <p class="card-text">
+                            UTRGV Link-Up was created to streamline the student experience.
+                            We know that finding a computer during finals week, borrowing a camera for a project,
+                            or just finding something to do on campus can be a hassle.
+                            Our platform brings these essential services together in one easy-to-use application,
+                            empowering Vaqueros to make the most of their time on campus.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="p-4">
+                    <div class="mb-3 text-primary">
+                        <i class="fa-solid fa-desktop fa-3x"></i>
+                    </div>
+                    <h4 class="fw-bold">Reserve a Computer</h4>
+                    <p class="text-muted">
+                        Stop wandering the halls looking for an open seat.
+                        View real-time availability in computer labs across campus and
+                        <strong>reserve your workstation</strong> in advance to guarantee your spot.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="p-4">
+                    <div class="mb-3 text-primary">
+                        <i class="fa-solid fa-camera fa-3x"></i>
+                    </div>
+                    <h4 class="fw-bold">Media Equipment</h4>
+                    <p class="text-muted">
+                        Need a DSLR for photography class or a laptop for the weekend?
+                        Browse the library's inventory and <strong>check out media equipment</strong>
+                        directly through the app, hassle-free.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="p-4">
+                    <div class="mb-3 text-primary">
+                        <i class="fa-solid fa-calendar-days fa-3x"></i>
+                    </div>
+                    <h4 class="fw-bold">Campus Events</h4>
+                    <p class="text-muted">
+                        Never miss out on the action.
+                        <strong>View and attend UTRGV events</strong> ranging from career fairs to
+                        student life gatherings. RSVP with a single click and stay connected.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

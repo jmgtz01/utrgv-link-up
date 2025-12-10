@@ -1,53 +1,172 @@
 body {
-  background-color: #c4c4c4;
+  background-color: #f4f6f9;
 }
 .flatpickr-calendar {
   z-index: 9999 !important;
 }
 
+/* =========================================
+   PROFESSIONAL NAVBAR STYLES
+   ========================================= */
+
+/* 1. The Main Bar */
+.navbar-custom {
+    background-color: #212529; /* Dark professional grey */
+    padding: 1rem 1.5rem;      /* More vertical spacing */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Drop shadow */
+    
+    /* The UTRGV Orange Accent Line */
+    border-bottom: 3px solid #F05023; 
+}
+
+/* 2. The Brand (UTRGV Link-Up) */
+.navbar-custom .navbar-brand {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 800;          /* Extra Bold */
+    text-transform: uppercase; /* All Caps */
+    letter-spacing: 1px;
+    font-size: 1.4rem;
+    color: #fff;
+    transition: color 0.3s;
+}
+
+.navbar-custom .navbar-brand:hover {
+    color: #F05023; /* Logo turns orange on hover */
+}
+
+/* 3. The Links */
+.navbar-custom .nav-link {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85) !important; /* Off-white text */
+    margin: 0 5px;             /* Spacing between links */
+    transition: all 0.3s ease; /* Smooth animation */
+    position: relative;
+}
+
+/* Hover Effect: Text turns white, subtle lift */
+.navbar-custom .nav-link:hover {
+    color: #fff !important;
+    transform: translateY(-2px);
+}
+
+/* Active/Focus Effect: Adds a small orange dot below the link */
+.navbar-custom .nav-link:focus, 
+.navbar-custom .nav-link:active {
+    color: #F05023 !important;
+}
+
+/* 4. Mobile Menu Toggler */
+.navbar-custom .navbar-toggler {
+    border-color: rgba(255,255,255,0.1);
+}
+.navbar-custom .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(240, 80, 35, 0.5); /* Orange glow on click */
+}
+
 /* --- Add this to index.css --- */
 
 /* Import Academic Fonts (Merriweather for titles, Open Sans for text) */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap");
 
 .uni-card {
-    border: none;
-    border-top: 4px solid #005cbf; /* Academic Blue accent */
-    /* box-shadow: 0 4px 8px rgba(0,0,0,0.1); Soft shadow */
-    /* CHANGE: Darker shadow (0.2 opacity) and larger blur (20px) */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
-    font-family: 'Open Sans', sans-serif;
+  border: none;
+  border-top: 4px solid #005cbf; /* Academic Blue accent */
+  /* box-shadow: 0 4px 8px rgba(0,0,0,0.1); Soft shadow */
+  /* CHANGE: Darker shadow (0.2 opacity) and larger blur (20px) */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  font-family: "Open Sans", sans-serif;
 }
 
 .uni-header {
-    font-family: 'Merriweather', serif;
-    /* color: #333; */
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+  font-family: "Merriweather", serif;
+  /* color: #333; */
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
 
-    /* CHANGE: Gradient Text Effect */
-    background: linear-gradient(to right, #005cbf, #6610f2); /* Blue to Purple */
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block; /* Required for gradient text to render correctly on some browsers */
+  /* CHANGE: Gradient Text Effect */
+  background: linear-gradient(to right, #005cbf, #6610f2); /* Blue to Purple */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block; /* Required for gradient text to render correctly on some browsers */
 }
 
 .uni-label {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    color: #6c757d; /* Muted grey for labels */
-    font-weight: bold;
-    letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #6c757d; /* Muted grey for labels */
+  font-weight: bold;
+  letter-spacing: 0.5px;
 }
 
 .uni-link {
-    color: #005cbf;
-    text-decoration: none;
-    font-weight: 600;
+  color: #005cbf;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .uni-link:hover {
-    text-decoration: underline;
+  text-decoration: underline;
+}
+/* 1. Make the text readable by adding a dark see-through box */
+.carousel-caption {
+  background-color: rgba(0, 0, 0, 0.6); /* Black background with 60% opacity */
+  border-radius: 15px; /* Rounded corners */
+  padding: 20px; /* Breathing room for text */
+  bottom: 40px; /* Move it up slightly */
+}
+
+/* 2. Make the arrows visible by putting a dark circle behind them */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-color: rgba(0, 0, 0, 0.6); /* Dark background */
+  border-radius: 50%; /* Make it a circle */
+  width: 3rem; /* Increase size slightly */
+  height: 3rem;
+  background-size: 50%; /* Keep the arrow icon sharp */
+}
+
+/* Optional: Add a hover effect to the arrows */
+.carousel-control-prev:hover .carousel-control-prev-icon,
+.carousel-control-next:hover .carousel-control-next-icon {
+  background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+}
+
+/* --- CUSTOM MEDIA QUERIES --- */
+
+/* 1. CAROUSEL IMAGES */
+/* Default (Mobile): Shorter height so it doesn't take up the whole phone screen */
+.carousel-item img {
+  height: 250px;
+  object-fit: cover; /* Prevents stretching */
+}
+
+/* Medium Screens (Tablets): Taller */
+@media (min-width: 768px) {
+  .carousel-item img {
+    height: 400px;
+  }
+}
+
+/* Large Screens (Desktops): Full height */
+@media (min-width: 992px) {
+  .carousel-item img {
+    height: 500px;
+  }
+}
+
+/* 2. CARD IMAGES */
+/* Force all card images to be the same height */
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+/* 3. CARD HEIGHT */
+/* Make sure all cards are the same height visually */
+.card {
+  height: 100%;
 }

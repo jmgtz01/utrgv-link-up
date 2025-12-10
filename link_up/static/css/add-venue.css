@@ -1,0 +1,123 @@
+/* =========================================
+       1. Typography & Header
+       ========================================= */
+    body {
+        font-family: 'Open Sans', sans-serif;
+        /* background-color: #f4f6f9; */
+    }
+
+    .page-title {
+        font-family: 'Open Sans', sans-serif;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .page-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: #F05023; /* UTRGV Orange */
+        margin: 15px auto 0;
+        border-radius: 2px;
+    }
+
+    /* =========================================
+       2. Form Container
+       ========================================= */
+    .form-container {
+        background-color: #ffffff;
+        padding: 3rem; /* Increased padding for breathing room */
+        border-radius: 15px; /* Softer corners */
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* Deeper, professional shadow */
+        margin: 0 auto;
+        border: 1px solid #eef0f3;
+    }
+
+    /* Responsive Widths */
+    .form-container { width: 100%; }
+    @media (min-width: 768px) { .form-container { width: 80%; } }
+    @media (min-width: 992px) { .form-container { width: 60%; } }
+
+    /* =========================================
+       3. Inputs & Labels
+       ========================================= */
+    .form-label {
+        color: #555;
+        font-size: 0.9rem;
+        font-weight: 700; /* Bold labels */
+        text-transform: uppercase; /* Uppercase labels look pro */
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    input[type="text"], input[type="email"], input[type="url"], input[type="tel"] {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 1rem; /* Taller inputs */
+        font-size: 1rem;
+        color: #212529;
+        background-color: #fdfdfd;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    input:focus {
+        background-color: #fff;
+        border-color: #F05023; /* Focus turns orange */
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(240, 80, 35, 0.15); /* Orange glow */
+    }
+
+    /* =========================================
+       4. CUSTOM BUTTON STYLES (New!)
+       ========================================= */
+    .btn-action {
+        padding: 0.8rem 2rem; /* Big, clickable area */
+        font-size: 0.9rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 50px; /* Pill shape looks modern */
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px; /* Space between icon and text */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Submit Button (Dark) */
+    .btn-submit {
+        background-color: #333;
+        color: white;
+    }
+    .btn-submit:hover {
+        background-color: #000;
+        transform: translateY(-3px); /* Lifts up */
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Cancel Button (Outline) */
+    .btn-cancel {
+        background-color: transparent;
+        border: 2px solid #ddd;
+        color: #777;
+    }
+    .btn-cancel:hover {
+        background-color: #f8f9fa;
+        border-color: #bbb;
+        color: #333;
+        transform: translateY(-3px);
+    }
+
+    .text-danger {
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }

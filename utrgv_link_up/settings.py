@@ -25,6 +25,7 @@ SECRET_KEY = 'django-insecure-lvwl3^$3y6nriq+^832w0i)%(py9zn2i$s9tmpe)=l+1@7@prk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Add '127.0.0.1', 'localhost' when DEBUG = False, if it is set to true leave blank
 ALLOWED_HOSTS = []
 
 
@@ -122,3 +123,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

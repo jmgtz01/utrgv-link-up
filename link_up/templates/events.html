@@ -1,115 +1,147 @@
 {% extends "base.html" %}
 {% load static %}
 {% block extra_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+          rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/events-list.css' %}">
 {% endblock extra_css %}
 {% block content %}
-    <div>
-        <h1>Events</h1>
-        <br>
-        {% if user.manager %}
-            <a href="{% url 'link_up:add-venue' %}" class="btn btn-primary">Add Venue</a>
-            <a href="{% url 'link_up:list-venues' %}" class="btn btn-primary">Venues</a>
-            <a href="{% url 'link_up:add-events' %}" class="btn btn-primary">Add Events</a>
-            <br>
-        {% elif user.student %}
-            <a href="{% url 'link_up:my-events' %}"
-               class="btn btn-primary {% if view_mode == 'my_events' %}active{% endif %}">My Events</a>
-            <a href="{% url 'link_up:all-events-student' %}"
-               class="btn btn-primary {% if view_mode == 'all_events' or view_mode == None %}active{% endif %}">
-                All Events
-            </a>
-        {% endif %}
-        <br>
-        <br>
-        <div class="row">
-            {% for event in event_list %}
-                <div class="col-4 mb-4">
-                    <div class="card" style="width: 18rem;">
-                        <img src="{% static event.image_name %}"
-                             class="card-img-top card-img-fixed"
-                             alt="{{ event }} image">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ event }}</h5>
-                            <p class="card-text">
-                                <i class="fa-solid fa-calendar"></i> {{ event.event_date|date:"M j, Y" }} at {{ event.event_date|time }}
-                            </p>
-                            <p class="card-text">
-                                <i class="fa-solid fa-location-dot"></i> {{ event.venue.address }}
-                            </p>
-                            <p class="card-text">
-                                <i class="fa-solid fa-city"></i> {{ event.venue.city }}, {{ event.venue.state }}. {{ event.venue.zip_code }}
-                            </p>
-                            <!-- Button trigger modal -->
-                            <button type="button"
-                                    class="btn btn-secondary w-100"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#eventModal-{{ event.pk }}"
-                                    onclick="if (!{{ user.is_authenticated|yesno:'true,false' }} && typeof requireLogin==='function'){ requireLogin(); return false; }">
-                                    More Information
-                            </button>
-                            <!-- Modal -->
-                            <div class="modal fade"
-                                 id="eventModal-{{ event.pk }}"
-                                 tabindex="-1"
-                                 aria-labelledby="eventModalLabel-{{ event.pk }}"
-                                 aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h1 class="modal-title fs-5" id="eventModalLabel-{{ event.pk }}">{{ event }}</h1>
-                                            <button type="button"
-                                                    class="btn-close"
-                                                    data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
+    <div class="py-4">
+        <h1 class="page-title">Upcoming Events</h1>
+        {% if user.is_authenticated %}
+            {% if user.manager %}
+                <div class="d-flex justify-content-center gap-4 mb-5 flex-wrap">
+                    <a href="{% url 'link_up:list-venues' %}"
+                       class="btn btn-light shadow-sm px-4 fw-bold text-dark">
+                        <i class="fa-solid fa-building"></i> Manage Venues
+                    </a>
+                    <a href="{% url 'link_up:add-venue' %}"
+                       class="btn btn-dark shadow-sm px-4">
+                        <i class="fa-solid fa-plus"></i> Add Venue
+                    </a>
+                    <a href="{% url 'link_up:add-events' %}"
+                       class="btn btn-primary shadow-sm px-4">
+                        <i class="fa-solid fa-calendar-plus"></i> Create New Event
+                    </a>
+                </div>
+            {% elif user.student %}
+                <div class="d-flex justify-content-center gap-3 mb-5">
+                    <a href="{% url 'link_up:my-events' %}"
+                       class="btn btn-pill {% if view_mode == 'my_events' %}btn-active{% else %}btn-inactive{% endif %}">
+                        <i class="fa-solid fa-user-check"></i> My Events
+                    </a>
+                    <a href="{% url 'link_up:all-events-student' %}"
+                       class="btn btn-pill {% if view_mode == 'all_events' or view_mode == None %}btn-active{% else %}btn-inactive{% endif %}">
+                        <i class="fa-solid fa-earth-americas"></i> All Events
+                    </a>
+                </div>
+            {% endif %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for event in event_list %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            {% if event.image %}
+                                <img src="{{ event.image.url }}"
+                                     class="card-img-top card-img-fixed"
+                                     alt="{{ event }} image">
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title fw-bold text-center mb-3">{{ event }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="fa-solid fa-calendar text-primary"></i> {{ event.event_date|date:"M j, Y" }} at {{ event.event_date|time }}
+                                </p>
+                                <p class="card-text text-muted">
+                                    <i class="fa-solid fa-location-dot text-danger"></i> {{ event.venue.address }}
+                                </p>
+                                <p class="card-text mb-4 text-muted small">
+                                    <i class="fa-solid fa-map-pin"></i> {{ event.venue.city }}, {{ event.venue.state }}
+                                </p>
+                                <div class="mt-auto">
+                                    <button type="button"
+                                            class="btn btn-primary w-100 mb-2"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#eventModal-{{ event.pk }}">More Information</button>
+                                    {% if user.student %}
+                                        <div class="row g-2">
+                                            {% if event.is_past %}
+                                                <div class="col-12">
+                                                    <button class="btn btn-secondary w-100 disabled">Event Ended</button>
+                                                </div>
+                                            {% else %}
+                                                <div class="col-6">
+                                                    {% if user.student in event.attendees.all %}
+                                                        <button class="btn btn-success w-100 disabled">
+                                                            <i class="fa-solid fa-check"></i> Going
+                                                        </button>
+                                                    {% else %}
+                                                        <a href="{% url 'link_up:attend-event' event.id %}"
+                                                           class="btn btn-outline-success w-100">Attend</a>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-6">
+                                                    {% if user.student in event.attendees.all %}
+                                                        <a href="{% url 'link_up:not-attend' event.id %}"
+                                                           class="btn btn-outline-danger w-100">Leave</a>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-secondary w-100 disabled">Ignore</button>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
                                         </div>
-                                        <div class="modal-body">
-                                            <strong>Description</strong>:
-                                            <p>{{ event.description }}</p>
+                                    {% elif user.manager %}
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <a href="{% url 'link_up:update-event' event.id %}"
+                                                   class="btn btn-warning w-100">Update</a>
+                                            </div>
+                                            <div class="col-6">
+                                                <a href="{% url 'link_up:delete-event' event.id %}"
+                                                   class="btn btn-danger w-100">Delete</a>
+                                            </div>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        </div>
-                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <br>
-                            <br>
-                            {% if user.student %}
-                                <div class="row">
-                                    <div class="col-6">
-                                        {% comment %} Check if the current student is already attending {% endcomment %}
-                                        {% if user.student in event.attendees.all %}
-                                            <a href="#" class="btn btn-success disabled btn-sm" aria-disabled="true">Attending!</a>
-                                        {% else %}
-                                            <a href="{% url 'link_up:attend-event' event.id %}"
-                                               class="btn btn-success btn-sm">Will Attend</a>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-6">
-                                        {% if user.student in event.attendees.all %}
-                                            <a href="{% url 'link_up:not-attend' event.id %}" class="btn btn-danger btn-sm">Not Attend</a>
-                                        {% else %}
-                                            <a href="#" class="btn btn-danger disabled btn-sm" aria-disabled="true">Not Attending</a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% elif user.manager %}
-                                <div class="row">
-                                    <div class="col-6">
-                                        <a href="{% url 'link_up:update-event' event.id %}"
-                                           class="btn btn-warning btn-sm">Update Event</a>
-                                    </div>
-                                    <div class="col-6">
-                                        <a href="{% url 'link_up:delete-event' event.id %}"
-                                           class="btn btn-danger btn-sm">Delete Event</a>
-                                    </div>
-                                </div>
-                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% for event in event_list %}
+                <div class="modal fade"
+                     id="eventModal-{{ event.pk }}"
+                     tabindex="-1"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5">{{ event }}</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <strong>Description:</strong>
+                                <p>{{ event.description }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
-        </div>
+        {% else %}
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="alert alert-warning text-center mt-5 p-5 shadow-sm rounded"
+                         role="alert">
+                        <h4 class="alert-heading">
+                            <i class="fa-solid fa-lock"></i> Account Required
+                        </h4>
+                        <p class="mb-3">You are currently viewing as a Guest. Please log in to attend events.</p>
+                        <a href="{% url 'login' %}"
+                           class="btn btn-warning px-4 shadow-sm fw-bold">Login Now</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock content %}

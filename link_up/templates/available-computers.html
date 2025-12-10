@@ -1,29 +1,37 @@
 {% extends "base.html" %}
 {% load static %}
+{% block extra_css %}
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+  <style>
+  /* =========================================
+     1. Professional Header Style
+     ========================================= */
+  .page-title {
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 800;
+      color: #333;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+      position: relative;
+  }
 
-{% block content %}
-<h1>Available Computers</h1>
-{% if is_admin %}
-{# Staff-only edit controls #}
-<div class="toolbar" style="margin:.5rem 0 1rem; display:flex; gap:.5rem;">
-  <button id="toggle-edit" class="btn btn-sm">Edit mode: Off</button>
-  <small style="opacity:.8">Click a marker to cycle status. In Edit mode, drag to reposition (saves to server).</small>
-</div>
-{% endif %}
-{% if user_active %}
-{# Active reservation banner for current user #}
-<div class="alert alert-info d-flex align-items-center justify-content-between" style="gap:.5rem;">
-  <div>
-    You have an active reservation: <strong>{{ user_active.resource_name }}</strong>
-    ({{ user_active.resource_type }}) until
-    <span id="active-res-end" data-end="{{ user_active.end }}">{{ user_active.end }}</span>
-  </div>
-  <div>
-    <button id="cancel-reservation" class="btn btn-danger btn-sm">Cancel reservation</button>
-  </div>
-</div>
-{% endif %}
-<style>
+  .page-title::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 4px;
+      background-color: #F05023; /* UTRGV Orange */
+      margin: 15px auto 0;
+      border-radius: 2px;
+  }
+  /* =========================================
+     2. Map & Marker Styles
+     ========================================= */
+     
   .map-wrap{
     position:relative; width:100%; max-width:1400px; margin:1rem 0 2rem;
     border:1px solid #333; border-radius:16px;
@@ -61,49 +69,83 @@
     white-space: nowrap;
   }
   .click-tooltip.show { visibility: visible; opacity: 1; }
-</style>
-
-<div class="map-wrap" id="map">
-  {# Tooltip anchor and all markers #}
-  <div id="click-tooltip" class="click-tooltip"></div>
-  {% for c in computers %}
-    <div class="marker"
-         data-id="{{ c.id }}" data-type="computer" data-status="{{ c.status }}"
-         data-is-mine="{{ c.is_mine|yesno:'true,false' }}" style="--x: {{ c.x|floatformat:-2 }}; --y: {{ c.y|floatformat:-2 }};"
-         title="{{ c.name }} ({{ c.status|title }})">
-      <img src="{% static c.icon %}" alt="{{ c.status }}">
-      <div class="label">{{ c.name }}</div>
+  </style>
+{% endblock extra_css %}
+{% block content %}
+  <h1 class="page-title">Available Computers</h1>
+  {% if is_admin %}
+    {# Staff-only edit controls #}
+    <div class="toolbar" style="margin:.5rem 0 1rem; display:flex; gap:.5rem;">
+      <button id="toggle-edit" class="btn btn-sm">Edit mode: Off</button>
+      <small style="opacity:.8">Click a marker to cycle status. In Edit mode, drag to reposition (saves to server).</small>
     </div>
-  {% endfor %}
-
-  {% for r in rooms %}
-    <div class="marker"
-         data-id="{{ r.id }}" data-type="room" data-status="{{ r.status }}"
-         data-is-mine="{{ r.is_mine|yesno:'true,false' }}" style="--x: {{ r.x|floatformat:-2 }}; --y: {{ r.y|floatformat:-2 }};"
-         title="{{ r.name }} ({{ r.status|title }})">
-      <img src="{% static r.icon %}" alt="{{ r.status }}">
-      <div class="label">{{ r.name }}</div>
-    </div>
-  {% endfor %}
-</div>
-
-<!-- Unified modal for login/reservation -->
-<div class="modal fade" id="reservation-modal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-light">
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title" id="reservation-modal-title">Reserve</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  {% endif %}
+  {% if user_active %}
+    {# Active reservation banner for current user #}
+    <div class="alert alert-info d-flex align-items-center justify-content-between"
+         style="gap:.5rem">
+      <div>
+        You have an active reservation: <strong>{{ user_active.resource_name }}</strong>
+        ({{ user_active.resource_type }}) until
+        <span id="active-res-end" data-end="{{ user_active.end }}">{{ user_active.end }}</span>
       </div>
-      <div class="modal-body" id="reservation-modal-body">Loading...</div>
-      <div class="modal-footer border-secondary" id="reservation-modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <div>
+        <button id="cancel-reservation" class="btn btn-danger btn-sm">Cancel reservation</button>
+      </div>
+    </div>
+  {% endif %}
+  <div class="map-wrap" id="map">
+    {# Tooltip anchor and all markers #}
+    <div id="click-tooltip" class="click-tooltip"></div>
+    {% for c in computers %}
+      <div class="marker"
+           data-id="{{ c.id }}"
+           data-type="computer"
+           data-status="{{ c.status }}"
+           data-is-mine="{{ c.is_mine|yesno:'true,false' }}"
+           style="--x: {{ c.x|floatformat:-2 }};
+                  --y: {{ c.y|floatformat:-2 }}"
+           title="{{ c.name }} ({{ c.status|title }})">
+        <img src="{% static c.icon %}" alt="{{ c.status }}">
+        <div class="label">{{ c.name }}</div>
+      </div>
+    {% endfor %}
+    {% for r in rooms %}
+      <div class="marker"
+           data-id="{{ r.id }}"
+           data-type="room"
+           data-status="{{ r.status }}"
+           data-is-mine="{{ r.is_mine|yesno:'true,false' }}"
+           style="--x: {{ r.x|floatformat:-2 }};
+                  --y: {{ r.y|floatformat:-2 }}"
+           title="{{ r.name }} ({{ r.status|title }})">
+        <img src="{% static r.icon %}" alt="{{ r.status }}">
+        <div class="label">{{ r.name }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  <!-- Unified modal for login/reservation -->
+  <div class="modal fade"
+       id="reservation-modal"
+       tabindex="-1"
+       aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="reservation-modal-title">Reserve</h5>
+          <button type="button"
+                  class="btn-close btn-close-white"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="reservation-modal-body">Loading...</div>
+        <div class="modal-footer border-secondary" id="reservation-modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<script>
+  <script>
 window.addEventListener('load', () => {
 (function(){
   // Page-level setup  
@@ -434,5 +476,5 @@ window.addEventListener('load', () => {
   setInterval(() => { window.location.reload(); }, 60000);
 })();
 });
-</script>
+  </script>
 {% endblock %}

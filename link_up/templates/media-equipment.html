@@ -1,91 +1,182 @@
 {% extends "base.html" %}
-
+{% load static %}
+{% block extra_css %}
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/media-equipment.css' %}">
+{% endblock extra_css %}
 {% block content %}
-<div class="py-4">
-  <h1 class="mb-3">Media Equipment Available for Checkout</h1>
-  <ul>
-    <li>All media and equipment must be returned before the end of the loan period.</li>
-    <li>Failure to do so will result in:
-      <ul>
-        <li>Late fees for overdue materials.</li>
-        <li>Overdue fines are $1.00 per day.</li>
-        <li>Maximum overdue fine is $25.00.</li>
-        <li>A hold placed on the user's library account, preventing circulation of all library materials.</li>
-      </ul>
-    </li>
-    <li>UTRGV credentials are required for login and use of laptops and tablets.</li>
-  </ul>
-
-  <p class="text-muted small mb-3">
-    Demo only: placing a hold lasts 60 minutes. Please visit the library within that window to check out the item.
-  </p>
-
-  <div class="table-responsive mt-4">
-    <table class="table table-bordered align-middle shadow-sm">
-      <thead class="table-light">
-        <tr>
-          <th scope="col">Material Type</th>
-          <th scope="col">Loan Period</th>
-          <th scope="col">Location</th>
-          <th scope="col">Available</th>
-          <th scope="col">Hold</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Digital Camcorder</td>
-          <td>Length of Semester</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="digital-camcorder" data-default="3">3</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="digital-camcorder">Hold</button></td>
-        </tr>
-        <tr>
-          <td>Digital Camera</td>
-          <td>Length of Semester</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="digital-camera" data-default="2">2</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="digital-camera">Hold</button></td>
-        </tr>
-        <tr>
-          <td>Laptop</td>
-          <td>14 days</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="laptop" data-default="5">5</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="laptop">Hold</button></td>
-        </tr>
-        <tr>
-          <td>Mobile Phone Charger</td>
-          <td>2 hours check out</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="phone-charger" data-default="4">4</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="phone-charger">Hold</button></td>
-        </tr>
-        <tr>
-          <td>Projector</td>
-          <td>Length of Semester</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="projector" data-default="0">0</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="projector">Hold</button></td>
-        </tr>
-        <tr>
-          <td>Graphing Calculators (TI-84 CE Plus)</td>
-          <td>Length of Semester</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="calc-ti84" data-default="6">6</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="calc-ti84">Hold</button></td>
-        </tr>
-        <tr>
-          <td>Graphing Calculators (models vary, batteries not included)</td>
-          <td>7 days</td>
-          <td>Brownsville and Edinburg</td>
-          <td><span class="badge text-bg-secondary" data-qty data-item="calc-varied" data-default="3">3</span></td>
-          <td><button class="btn btn-outline-primary btn-sm" data-hold data-item="calc-varied">Hold</button></td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="py-4">
+    <h1 class="page-title">Media Equipment Available for Checkout</h1>
+    {% if user.is_authenticated %}
+      <div class="alert alert-info shadow-sm mb-4" role="alert">
+        <h5 class="alert-heading">
+          <i class="fa-solid fa-circle-info"></i> Important Policy
+        </h5>
+        <hr>
+        <ul>
+          <li>All media and equipment must be returned before the end of the loan period.</li>
+          <li>
+            Failure to do so will result in:
+            <ul>
+              <li>
+                <strong>Late Fees:</strong> $1.00 per day (Max $25.00).
+              </li>
+              <li>A hold placed on the user's library account, preventing circulation of all library materials.</li>
+            </ul>
+          </li>
+          <li>UTRGV credentials are required for login and use of laptops and tablets.</li>
+        </ul>
+      </div>
+      <p class="text-muted small mb-3">
+        <em>Placing a hold lasts 60 minutes. Please visit the library within that window to check out the item.</em>
+      </p>
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 25%;">Material Type</th>
+                <th scope="col" style="width: 20%;">Loan Period</th>
+                <th scope="col" style="width: 25%;">Location</th>
+                <th scope="col" class="text-center" style="width: 15%;">Available</th>
+                <th scope="col" class="text-center" style="width: 15%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fw-bold">Digital Camcorder</td>
+                <td>Length of Semester</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="digital-camcorder"
+                        data-default="3">3</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="digital-camcorder">Hold</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold">Digital Camera</td>
+                <td>Length of Semester</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="digital-camera"
+                        data-default="2">2</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="digital-camera">Hold</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold">Laptop</td>
+                <td>14 days</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="laptop"
+                        data-default="5">5</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="laptop">Hold</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold">Phone Charger</td>
+                <td>2 hours</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="phone-charger"
+                        data-default="4">4</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="phone-charger">Hold</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold">Projector</td>
+                <td>Length of Semester</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="projector"
+                        data-default="0">0</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="projector">Hold</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold">Graphing Calc (TI-84)</td>
+                <td>Length of Semester</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="calc-ti84"
+                        data-default="6">6</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="calc-ti84">Hold</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="fw-bold">Graphing Calc (Other)</td>
+                <td>7 days</td>
+                <td>Brownsville / Edinburg</td>
+                <td class="text-center">
+                  <span class="badge bg-secondary"
+                        data-qty
+                        data-item="calc-varied"
+                        data-default="3">3</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm btn-hold w-100"
+                          data-hold
+                          data-item="calc-varied">Hold</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% else %}
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="alert alert-warning text-center mt-5 p-5 shadow-sm rounded"
+               role="alert">
+            <h4 class="alert-heading">
+              <i class="fa-solid fa-lock"></i> Account Required
+            </h4>
+            <p class="mb-3">You are currently viewing as a Guest. Please log in to view and reserve media equipment.</p>
+            <a href="{% url 'login' %}"
+               class="btn btn-warning px-4 shadow-sm fw-bold">Login Now</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   </div>
-</div>
-<script>
+  <script>
 // Clicking Hold marks it "Request Sent" for 60 minutes (persists via localStorage) and decrements available count
 document.addEventListener('DOMContentLoaded', () => {
   const HOLD_MS = 60 * 60 * 1000;
@@ -161,5 +252,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
-</script>
+  </script>
 {% endblock %}

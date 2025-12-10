@@ -1,0 +1,109 @@
+/* =========================================
+       1. Typography & Header
+       ========================================= */
+    body {
+        font-family: 'Open Sans', sans-serif;
+        background-color: #f4f6f9;
+    }
+
+    .page-title {
+        font-family: 'Open Sans', sans-serif;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .page-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: #F05023; /* UTRGV Orange */
+        margin: 15px auto 0;
+        border-radius: 2px;
+    }
+
+    /* =========================================
+       2. Form Container
+       ========================================= */
+    .form-container {
+        background-color: #ffffff;
+        padding: 3rem;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        margin: 0 auto;
+        border: 1px solid #eef0f3;
+    }
+
+    /* Responsive Widths (Slightly narrower for Login) */
+    .form-container { width: 100%; }
+    @media (min-width: 768px) { .form-container { width: 60%; } }
+    @media (min-width: 992px) { .form-container { width: 40%; } }
+
+    /* =========================================
+       3. Inputs & Labels
+       ========================================= */
+    .form-label {
+        color: #555;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    input[type="text"], 
+    input[type="password"] {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        color: #212529;
+        background-color: #fdfdfd;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    input:focus {
+        background-color: #fff;
+        border-color: #F05023;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(240, 80, 35, 0.15);
+    }
+
+    /* =========================================
+       4. Button Styles
+       ========================================= */
+    .btn-action {
+        padding: 0.8rem 2rem;
+        font-size: 0.9rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 50px;
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-decoration: none;
+        width: 100%; /* Full width button */
+    }
+
+    .btn-submit {
+        background-color: #333;
+        color: white;
+    }
+    .btn-submit:hover {
+        background-color: #000;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        color: white;
+    }

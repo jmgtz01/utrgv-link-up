@@ -1,25 +1,52 @@
 {% extends "base.html" %}
 {% load static %}
 {% block extra_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 {% endblock extra_css %}
 {% block content %}
-    <div>
-        {% if form.errors %}
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                There was an error with your form...
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Close"></button>
-            </div>
-        {% endif %}
-        <div class="shadow p-4 mb-5 bg-body rounded">
-            <h1>Register</h1>
-            <br>
+    <div class="py-5">
+        <h1 class="page-title">Register</h1>
+        <div class="form-container">
+            {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4"
+                     role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> Please correct the errors below.
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            {% endif %}
             <form action="{% url 'register_user' %}" method="POST">
                 {% csrf_token %}
-                {{ form.as_p }}
-                <input type="submit" value="Submit" class="btn btn-secondary">
+                {% for field in form %}
+                    <div class="mb-4">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger mt-2">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if field.help_text %}<div class="help-text">{{ field.help_text|safe }}</div>{% endif %}
+                    </div>
+                {% endfor %}
+                <hr class="my-4" style="opacity: 0.1;">
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-submit btn-action">
+                        Create Account <i class="fa-solid fa-user-plus"></i>
+                    </button>
+                </div>
+                <div class="text-center mt-4">
+                    <span class="text-muted">Already have an account?</span>
+                    <a href="{% url 'login' %}"
+                       class="fw-bold text-decoration-none"
+                       style="color: #F05023">Login here</a>
+                </div>
             </form>
         </div>
     </div>

@@ -1,28 +1,70 @@
 {% extends "base.html" %}
 {% load static %}
+{% block extra_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/venue.css' %}">
+{% endblock extra_css %}
 {% block content %}
-    <h1>Venues</h1>
-    <br>
-    <a type="button" class="btn btn-secondary" href="{% url 'link_up:events' %}">Event Page</a>
-    <br>
-    <br>
-    <div class="d-inline-flex d-block mx-auto">
-        <table class="table table-hover table-striped table-bordered">
-            {% for venue in venue_list %}
-                <tr>
-                    <td style="white-space: nowrap;">
-                        <a href="{% url 'link_up:show-venue' venue.id %}">{{ venue }}</a>
-                    </td>
-                    <td class="text-end" style="width: 1%;">
-                        <a href="{% url 'link_up:update-venue' venue.id %}"
-                           class="btn btn-outline-secondary btn-sm">Update</a>
-                    </td>
-                    <td class="text-end" style="width: 1%;">
-                        <a href="{% url 'link_up:delete-venue' venue.id %}"
-                           class="btn btn-outline-danger btn-sm">Delete</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+    <div class="py-4">
+        <h1 class="page-title">Manage Venues</h1>
+        {% if user.is_authenticated %}
+            <div class="content-container">
+                <div class="action-bar">
+                    <a href="{% url 'link_up:events' %}" class="btn btn-dark shadow-sm px-4">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Events
+                    </a>
+                    <a href="{% url 'link_up:add-venue' %}"
+                       class="btn btn-primary shadow-sm px-4">
+                        <i class="fa-solid fa-plus"></i> Add New Venue
+                    </a>
+                </div>
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 50%;">Venue Name</th>
+                                    <th scope="col" class="text-end" style="width: 50%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venue in venue_list %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'link_up:show-venue' venue.id %}" class="venue-link">{{ venue }}</a>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'link_up:update-venue' venue.id %}"
+                                               class="btn btn-outline-primary btn-sm me-1">
+                                                <i class="fa-solid fa-pen-to-square"></i> Update
+                                            </a>
+                                            <a href="{% url 'link_up:delete-venue' venue.id %}"
+                                               class="btn btn-outline-danger btn-sm">
+                                                <i class="fa-solid fa-trash"></i> Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-center py-5 text-muted">
+                                            <i class="fa-solid fa-building-circle-xmark fa-2x mb-3"></i>
+                                            <br>
+                                            No venues found. Click "Add New Venue" to create one.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {# Guest Message #}
+            <div class="alert alert-warning text-center" role="alert">
+                You are currently viewing as a Guest.
+                <strong>Please <a href="{% url 'login' %}">log in</a></strong> to attend events or manage venues.
+            </div>
+        {% endif %}
     </div>
 {% endblock content %}

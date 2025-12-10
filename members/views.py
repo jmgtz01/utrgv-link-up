@@ -24,8 +24,8 @@ def login_user(request):
             username = request.POST.get("username", "")
             password = request.POST.get("password", "")
         next_url = request.POST.get("next") or request.GET.get("next")
-        if not next_url:
-            next_url = request.META.get("HTTP_REFERER")
+        # if not next_url:
+        #     next_url = request.META.get("HTTP_REFERER")
 
         user = authenticate(request, username=username, password=password)
         if user is not None:

@@ -10,6 +10,7 @@
           integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
           crossorigin="anonymous" />
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
           integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
@@ -18,8 +19,8 @@
     {% block extra_css %}
     {% endblock extra_css %}
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <body class="d-flex flex-column min-vh-100">
+    <nav class="nnavbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
       <div class="container-fluid">
         <!-- Use namespaced route names -->
         <a class="navbar-brand" href="{% url 'link_up:home' %}">UTRGV Link-Up</a>
@@ -41,18 +42,11 @@
               <a class="nav-link" href="{% url 'link_up:available_computers' %}">Available Computers</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'link_up:study_groups' %}">Media Equipment</a>
+              <a class="nav-link" href="{% url 'link_up:media_equipment' %}">Media Equipment</a>
               {# Or {% url 'link_up:study-groups' %} if your name uses a hyphen #}
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'link_up:instant_message' %}">Instant Message</a>
-              {# Or {% url 'link_up:instant-message' %} if your name uses a hyphen #}
-            </li>
-            <li class="nav-item">
               <a class="nav-link" href="{% url 'link_up:events' %}">Events</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'link_up:resources' %}">Resources</a>
             </li>
             {% if user.is_authenticated %}
               <li class="nav-item">
@@ -67,19 +61,11 @@
               </li>
             {% endif %}
           </ul>
-          <form class="d-flex" role="search">
-            {% csrf_token %}
-            <input class="form-control me-2"
-                   type="search"
-                   placeholder="Search"
-                   aria-label="Search" />
-            <button class="btn btn-outline-secondary" type="submit">Search</button>
-          </form>
         </div>
       </div>
     </nav>
     <br />
-    <div class="container">
+    <div class="container flex-grow-1">
       {% if messages %}
         <div class="messages mt-3">
           {% for message in messages %}
@@ -97,28 +83,79 @@
       {% block content %}
       {% endblock content %}
     </div>
+    <footer class="bg-dark text-center text-white mt-5">
+      <div class="container p-4 pb-0">
+        <section class="mb-4">
+          <a class="btn btn-outline-light btn-floating m-1"
+             href="https://www.facebook.com/utrgv"
+             target="_blank"
+             role="button">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a class="btn btn-outline-light btn-floating m-1"
+             href="https://www.instagram.com/utrgv"
+             target="_blank"
+             role="button">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a class="btn btn-outline-light btn-floating m-1"
+             href="https://x.com/utrgv"
+             target="_blank"
+             role="button">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a class="btn btn-outline-light btn-floating m-1"
+             href="https://www.youtube.com/utrgv"
+             target="_blank"
+             role="button">
+            <i class="fab fa-youtube"></i>
+          </a>
+        </section>
+        <section class="mb-4">
+          <a href="{% url 'link_up:about' %}"
+             class="text-white text-decoration-none">About UTRGV Link-Up</a>
+        </section>
+      </div>
+      <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">© 2025 UTRGV Link-Up</div>
+    </footer>
     {% block extra_js %}
     {% endblock extra_js %}
-
     <!-- Global Login Modal (hidden until required) -->
-    <div class="modal fade" id="global-login-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade"
+         id="global-login-modal"
+         tabindex="-1"
+         aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Login</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"></button>
           </div>
           <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
-            <input type="hidden" name="next" id="global-login-next" value="{{ request.path }}">
+            <input type="hidden"
+                   name="next"
+                   id="global-login-next"
+                   value="{{ request.path }}">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label" for="global-login-username">Username</label>
-                <input type="text" class="form-control" id="global-login-username" name="username" autocomplete="username">
+                <input type="text"
+                       class="form-control"
+                       id="global-login-username"
+                       name="username"
+                       autocomplete="username">
               </div>
               <div class="mb-3">
                 <label class="form-label" for="global-login-password">Password</label>
-                <input type="password" class="form-control" id="global-login-password" name="password" autocomplete="current-password">
+                <input type="password"
+                       class="form-control"
+                       id="global-login-password"
+                       name="password"
+                       autocomplete="current-password">
               </div>
             </div>
             <div class="modal-footer">
@@ -129,7 +166,6 @@
         </div>
       </div>
     </div>
-
     <script>
       // Global helper to show the login modal on demand
       (function(){

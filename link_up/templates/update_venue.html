@@ -1,11 +1,40 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/update-venue.css' %}">
+{% endblock extra_css %}
 {% block content %}
-  <h1>Update Venue</h1>
-  <br>
-  <form action="" method=POST>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <br>
-    <input type="submit" value="Update" class="butn btn-secondary">
-  </form>
+  <div class="py-4">
+    <h1 class="page-title">Update Venue</h1>
+    <div class="form-container">
+      <form action="" method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-bold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              {% for error in field.errors %}
+                <div class="text-danger small mt-1">
+                  <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        {% endfor %}
+        <hr class="my-5" style="opacity: 0.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <a href="{% url 'link_up:list-venues' %}"
+             class="btn btn-cancel btn-action text-decoration-none">
+            <i class="fa-solid fa-times"></i> Cancel
+          </a>
+          <button type="submit" class="btn btn-submit btn-action">
+            Update Venue <i class="fa-solid fa-rotate"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 {% endblock content %}

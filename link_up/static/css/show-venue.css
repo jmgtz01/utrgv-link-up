@@ -1,0 +1,94 @@
+/* --- 1. PROFESSIONAL HEADER STYLE --- */
+    .page-title {
+        font-family: 'Open Sans', sans-serif;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .page-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: #F05023; /* UTRGV Orange */
+        margin: 15px auto 0;
+        border-radius: 2px;
+    }
+
+    /* --- 2. RESPONSIVE CONTAINER (Media Queries) --- */
+    /* Mobile (Default): Full width */
+    .content-container {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    /* Tablet (Medium): 80% width, centered */
+    @media (min-width: 768px) {
+        .content-container {
+            width: 80%;
+            margin: 0 auto;
+        }
+    }
+
+    /* Desktop (Large): 50% width for a clean, focused profile card */
+    @media (min-width: 992px) {
+        .content-container {
+            width: 50%;
+            margin: 0 auto;
+        }
+    }
+
+    /* --- 3. CARD STYLING --- */
+    .venue-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Soft shadow */
+        overflow: hidden;
+        background-color: white;
+    }
+
+    .venue-header {
+        background-color: #333;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .venue-header h2 {
+        margin: 0;
+        font-weight: 700;
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    .venue-body {
+        padding: 2rem;
+    }
+
+    /* Detail Labels */
+    .detail-label {
+        color: #F05023; /* UTRGV Orange */
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        margin-bottom: 0.2rem;
+        display: block;
+    }
+
+    .detail-text {
+        color: #555;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    .detail-icon {
+        width: 20px;
+        text-align: center;
+        margin-right: 8px;
+        color: #666;
+    }

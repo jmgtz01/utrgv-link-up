@@ -1,0 +1,96 @@
+/* --- 1. PROFESSIONAL HEADER STYLE --- */
+    .page-title {
+        font-family: 'Open Sans', sans-serif;
+        font-weight: 800;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .page-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: #F05023; /* UTRGV Orange */
+        margin: 15px auto 0;
+        border-radius: 2px;
+    }
+
+    /* --- 2. RESPONSIVE FORM CONTAINER --- */
+    /* Default (Mobile): Full width, no shadow to save space */
+    .form-container {
+        width: 100%;
+        padding: 1rem;
+        background-color: #fff;
+    }
+
+    /* Medium Screens (Tablets): 80% width, centered, subtle shadow */
+    @media (min-width: 768px) {
+        .form-container {
+            width: 80%;
+            margin: 0 auto; /* Center the box */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Professional shadow */
+            border: 1px solid #eee;
+        }
+    }
+
+    /* Large Screens (Desktops): 60% width for a focused look */
+    @media (min-width: 992px) {
+        .form-container {
+            width: 60%;
+        }
+    }
+
+    /* Ensure inputs fill the container width */
+    input[type="text"], input[type="email"], input[type="url"], input[type="number"], select {
+        width: 100%; 
+    }
+
+    /* =========================================
+       4. CUSTOM BUTTON STYLES
+       ========================================= */
+    .btn-action {
+        padding: 0.8rem 2rem;
+        font-size: 0.9rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 50px;
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-decoration: none;
+    }
+
+    /* Update Button (Dark) */
+    .btn-submit {
+        background-color: #333;
+        color: white;
+    }
+    .btn-submit:hover {
+        background-color: #000;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    /* Cancel Button (Outline) */
+    .btn-cancel {
+        background-color: transparent;
+        border: 2px solid #ddd;
+        color: #777;
+    }
+    .btn-cancel:hover {
+        background-color: #f8f9fa;
+        border-color: #bbb;
+        color: #333;
+        transform: translateY(-3px);
+    }

@@ -114,28 +114,28 @@ class EventForm(ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
-    def clean_image_name(self):
-        """
-        Prepends 'img/events-list/' to the image_name value if it exists and
-        doesn't already start with the desired prefix.
-        """
-        image_name = self.cleaned_data.get('image_name')
-        prefix = 'img/events-list/'
+    # def clean_image_name(self):
+    #     """
+    #     Prepends 'img/events-list/' to the image_name value if it exists and
+    #     doesn't already start with the desired prefix.
+    #     """
+    #     image_name = self.cleaned_data.get('image_name')
+    #     prefix = 'img/events-list/'
 
-        if image_name:
-            # Strip potential leading/trailing whitespace
-            image_name = image_name.strip()
+    #     if image_name:
+    #         # Strip potential leading/trailing whitespace
+    #         image_name = image_name.strip()
 
-            # Check if the prefix is already there (case-insensitive for robustness)
-            if not image_name.lower().startswith(prefix.lower()):
-                return prefix + image_name
+    #         # Check if the prefix is already there (case-insensitive for robustness)
+    #         if not image_name.lower().startswith(prefix.lower()):
+    #             return prefix + image_name
 
-        return image_name
+    #     return image_name
     
     class Meta:
         model = Event
         fields = ('name', 'event_date', 'venue', 'manager',
-                  'email_address', 'description', 'image_name')
+                  'email_address', 'description', 'image')
         labels = {
             'name': format_html("Name: Enter Your Event Here (<span style='color:red;'>Required</span>)"),
             # 'event_date': format_html("Date: Enter the Date (<span style='color:red;'>Required</span>)"),
@@ -144,7 +144,8 @@ class EventForm(ModelForm):
             'email_address': format_html("Email Address: Enter Event Contact Email (<span style='color:red;'>Required</span>)"),
             'description': format_html("Description code: Type a description of your event... (<span style='color:red;'>Required</span>)"),
             # 'attendees': format_html("Pick Attendees: (<span style='color:red;'>Required</span>)"),
-            'image_name': format_html("Image Name: Enter the file name of your image"),
+            # 'image_name': format_html("Image Name: Enter the file name of your image"),
+            'image': "Upload Event Image",
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UTRGV Event Name'}),

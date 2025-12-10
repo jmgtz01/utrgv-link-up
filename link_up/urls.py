@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = "link_up"
 
@@ -8,10 +10,8 @@ urlpatterns = [
     path("about/", views.about, name="about"),
     path("available_computers/", views.available_computers,
          name="available_computers"),
-    path("study-groups/", views.study_groups, name="study_groups"),
-    path("instant-message/", views.instant_message, name="instant_message"),
+    path("media-equipment/", views.media_equipment, name="media_equipment"),
     path("events/", views.events, name="events"),
-    path("resources/", views.resources, name="resources"),
     path("api/status/", views.update_status, name="update_status"),
     path("api/position/", views.update_position, name="update_position"),
     path("api/slots/", views.available_slots, name="available_slots"),
@@ -31,3 +31,7 @@ urlpatterns = [
     path('all-events-student/', views.all_events_student,
          name='all-events-student'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

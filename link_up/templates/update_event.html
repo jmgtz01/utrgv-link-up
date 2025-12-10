@@ -1,12 +1,54 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/update-event.css' %}">
+{% endblock extra_css %}
 {% block content %}
-  <h1>Update Event</h1>
-  <br>
-  <form action="" method=POST>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <br>
-    <input type="submit" value="Update" class="btn btn-secondary">
-    <a href="{% url 'link_up:events' %}" class="btn btn-primary">Events Page</a>
-  </form>
+  <div class="py-5">
+    <h1 class="page-title">Update Event</h1>
+    {% if user.is_authenticated %}
+      <div class="form-container">
+        <form action="" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+          {% for field in form %}
+            <div class="mb-4">
+              <label class="form-label">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                {% for error in field.errors %}
+                  <div class="text-danger mt-2">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+              {% if field.help_text %}<div class="form-text text-muted">{{ field.help_text }}</div>{% endif %}
+            </div>
+          {% endfor %}
+          <hr class="my-5" style="opacity: 0.1;">
+          <div class="d-flex justify-content-between align-items-center">
+            <a href="{% url 'link_up:events' %}"
+               class="btn btn-cancel btn-action text-decoration-none">
+              <i class="fa-solid fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-submit btn-action">
+              Update Event <i class="fa-solid fa-rotate"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    {% else %}
+      {# Guest Message #}
+      <div class="alert alert-warning text-center" role="alert">
+        You are currently viewing as a Guest.
+        <strong>Please <a href="{% url 'login' %}">log in</a></strong> to attend events or manage venues.
+      </div>
+    {% endif %}
+  </div>
 {% endblock content %}

@@ -429,12 +429,8 @@ def create_reservation(request):
     return JsonResponse({"ok": True})
 
 
-def study_groups(request):
+def media_equipment(request):
     return render(request, 'media-equipment.html', {})
-
-
-def instant_message(request):
-    return render(request, 'instant-message.html', {})
 
 
 def events(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
@@ -479,10 +475,6 @@ def events(request, year=datetime.now().year, month=datetime.now().strftime('%B'
         "time": time,
         "event_list": event_list,
     })
-
-
-def resources(request):
-    return render(request, 'resources.html', {})
 
 
 def add_venue(request):
@@ -536,10 +528,11 @@ def update_venue(request, venue_id):
 def add_events(request):
     submitted = False
     if request.method == "POST":
-        form = EventForm(request.POST)
+        form = EventForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('link_up:add-events') + '?submitted=True')
+            # return HttpResponseRedirect(reverse('link_up:add-events') + '?submitted=True')
+            return redirect('link_up:events')
     else:
         form = EventForm()
         if 'submitted' in request.GET:
@@ -552,7 +545,8 @@ def add_events(request):
 
 def update_event(request, event_id):
     event = Event.objects.get(pk=event_id)
-    form = EventForm(request.POST or None, instance=event)
+    form = EventForm(request.POST or None,
+                     request.FILES or None, instance=event)
     if form.is_valid():
         form.save()
         return redirect('link_up:events')
