@@ -25,13 +25,13 @@
                     </a>
                 </div>
             {% elif user.student %}
-                <div class="d-flex justify-content-center gap-3 mb-5">
+                <div class="d-flex justify-content-center gap-4 mb-5 flex-wrap">
                     <a href="{% url 'link_up:my-events' %}"
-                       class="btn btn-pill {% if view_mode == 'my_events' %}btn-active{% else %}btn-inactive{% endif %}">
+                       class="btn shadow-sm px-4 fw-bold {% if view_mode == 'my_events' %}btn-primary{% else %}btn-light text-dark{% endif %}">
                         <i class="fa-solid fa-user-check"></i> My Events
                     </a>
                     <a href="{% url 'link_up:all-events-student' %}"
-                       class="btn btn-pill {% if view_mode == 'all_events' or view_mode == None %}btn-active{% else %}btn-inactive{% endif %}">
+                       class="btn shadow-sm px-4 fw-bold {% if view_mode == 'all_events' or view_mode == None %}btn-primary{% else %}btn-light text-dark{% endif %}">
                         <i class="fa-solid fa-earth-americas"></i> All Events
                     </a>
                 </div>
@@ -111,18 +111,20 @@
                      id="eventModal-{{ event.pk }}"
                      tabindex="-1"
                      aria-hidden="true">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h1 class="modal-title fs-5">{{ event }}</h1>
+                                <h1 class="modal-title">
+                                    <i class="fa-solid fa-circle-info text-primary me-2"></i> {{ event }}
+                                </h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <strong>Description:</strong>
-                                <p>{{ event.description }}</p>
+                                <h6 class="fw-bold text-dark mb-2">Event Description</h6>
+                                <p class="mb-0">{{ event.description }}</p>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
