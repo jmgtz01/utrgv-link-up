@@ -3,19 +3,19 @@
 Link up, work smarter, and own your UTRGV experience.
 --
 ## 💡 Overview
-Stop wasting time walking across campus or searching for a spot to study. UTRGV Link-Up is the all-in-one productivity and social tool built specifically for Vaqueros.
-This application cuts through the clutter, giving you instant access to the essential campus resources you need to succeed. Built with Python and a responsive web frontend, you can instantly check live library computer availability to secure your workstation, book study breakout rooms with a tap, and seamlessly coordinate with your study groups right from your desktop or mobile device.
+Stop wasting time walking across campus only to find the library full. **UTRGV Link-Up** is the all-in-one productivity tool built specifically for Vaqueros. This application cuts through the clutter, giving you instant access to the essential campus resources you need to succeed. 
+
+Built with **Django** and a responsive **Bootstrap** frontend, Link-Up allows you to visualize computer lab availability, check the stock of media equipment (like cameras and laptops), and keep track of campus events—all from one dashboard.
+
 ---
 ## ✨ Key Features
 UTRGV Link-Up is designed to help you work smarter, not harder:
 
 💻 Find Open Computers: Get live status for all available library workstations across both UTRGV campuses (via messaging other students that are currently utilizing the library). Never wander aimlessly again.
 
-📚 Book Your Space: Instantly reserve virtual study rooms and breakout spaces right from the app.
+📷 Media Equipment Checkout: Need a DSLR for a project or a laptop for the day? View the live status of checkoutable items.
 
-💬 Connect & Collaborate: Use the built-in instant messaging for group chat, direct messaging, and quick study session creation with your peers.
-
-🗓️ Never Miss Out: Effortlessly browse, create, and share official and student-run campus events happening across both campuses.
+🗓️ Stay Involved: Never miss out on what's happening at UTRGV. Browse upcoming official and student-run events (like sports games or Veteran's Day observances). You can mark events to "Attend" or "Ignore" to curate your own schedule.
 
 ---
 ## 🛠️ Built With
@@ -29,7 +29,6 @@ Frontend Styling: Bootstrap 5.x for a responsive, mobile-first design.
 
 Database: SQLite
 
-Real-time Communication: WebSockets implementation for the instant messaging feature.
 ---
 ## 🤝 Contribution
 We welcome contributions from the UTRGV community! Please feel free to open an issue for bug reports or feature suggestions.
@@ -43,10 +42,11 @@ Commit your Changes (git commit -m 'feat: Add some AmazingFeature').
 Push to the Branch (git push origin feature/AmazingFeature).
 
 Open a Pull Request.
+
 ---
 ## 📄 License
 Distributed under the MIT License. See the LICENSE file in the repository root for more information.
 ---
 ## ✉️ Contact
 Project Link: https://github.com/jmgtz01/utrgv-link-up
-Developer: jmgtz01
+Developer: jmgtz01, General-Zilver
